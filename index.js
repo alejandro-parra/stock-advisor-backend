@@ -16,11 +16,14 @@ const saltRounds = 10;
 const url = "mongodb+srv://stockmaster:kycpaco_280198@db.s775v.mongodb.net/StockAdvisor?retryWrites=true&w=majority";
 const key = process.env.key;
 
+
+
 var sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
 const { check, validationResult } = require('express-validator'); //checar tipos de datos
 
 const app = express();
-app.use(bodyParser.urlencoded({limit: '50mb',extended: true}))
+app.use(bodyParser.urlencoded({limit: '10mb',extended: true}))
+app.use(bodyParser.json({limit: '10mb', extended: true}));
 const protectedRoutes = express.Router(); //middleware para verificar si el usuario está loggeado
 
 protectedRoutes.use((req, res, next) => {
@@ -47,7 +50,7 @@ app.set('key', process.env.key);
 
 app.use(ddos.express);
 app.use(helmet())
-const whitelist = ['http://localhost:4200/'] //dominios que pueden entrar y hacer llamadas al back
+const whitelist = ['http://localhost:4200'] //dominios que pueden entrar y hacer llamadas al back
 const corsOptions = {
   origin: function(origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
@@ -96,16 +99,6 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
       });
     }
 
-    async function verifyJoinToken(randomToken) {
-      let result = await collectionLeagues.find({joinToken: randomToken}).toArray()
-      console.log(result)
-      if(result.length === 0){
-          return true;
-      } else {
-          return false;
-      }
-  } 
-
 
     //ENDPOINTS
     /**
@@ -117,13 +110,15 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
         if (token) {
             jwt.verify(token, app.get('key'), (err, decoded) => {      
                 if (err) {
-                    res.status(500).send("Se cerró la sesión debido a un error");      
+                    return res.status(500).send("Se cerró la sesión debido a un error");
+                          
                 } else {
-                    res.status(200).send("Success");  
+                    return res.status(200).send("Success");  
+                    
                 }
             });
         } else {
-            res.status(500).send("Se cerró la sesión debido a un error");      
+            return res.status(500).send("Se cerró la sesión debido a un error"); 
         }
     })
 
@@ -142,7 +137,7 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
         bcrypt.hash(password, saltRounds, function (err, hash) {
             usersCollection.find({email:email}).toArray().then((results)=>{
                 if(results.length>0){
-                    res.status(400).send("El correo ya existe para una cuenta."); 
+                    return res.status(400).send("El correo ya existe para una cuenta."); 
                 } else{
                     let user = {
                         name:name,
@@ -162,11 +157,11 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
                         user.password = null;
                         user.token = token;
                         user.insertedId = response.insertedId;
-                        res.status(200).send(user); 
+                        return res.status(200).send(user); 
                     }).catch((err)=>{
                         console.log('insertion error')
-                        res.status(500).send("Error interno del sistema");  
                         console.log(err);
+                        return res.status(500).send("Error interno del sistema");  
                     })
                 }
             }).catch((err)=>{
@@ -180,15 +175,15 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
         check('email').isEmail(),
         check('password').not().isEmpty()
       ], function(req, res) {
-          console.log(req.body);
-        if(req.body.email && req.body.password){
-            var password = sanitize(req.body.password);
-            var email = sanitize(req.body.email);
+        console.log(req.body);
+        if(req.body.email !== undefined && req.body.password !== undefined){
+            let password = sanitize(req.body.password);
+            let email = sanitize(req.body.email);
             usersCollection.find({email:email}).toArray().then((results)=>{
-                if(results.length > 0){
+                if(results.length === 1){
                     let user = results[0];
                     if (! bcrypt.compareSync(password, user.password)){
-                        res.status(400).send("Contraseña incorrecta"); 
+                        return res.status(400).send("Contraseña incorrecta"); 
                     } else{
                         let payload = {
                             email: user.email,
@@ -199,17 +194,17 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
                         });
                         user.password = null;
                         user.token = token;
-                        res.status(200).send(user); 
+                        return res.status(200).send(user); 
                     }
                 }else{
-                    res.status(404).send("Usuario no encontrado en la base de datos."); 
+                    return res.status(404).send("Usuario no encontrado en la base de datos."); 
                 }
             }).catch((err)=>{
                 console.log('Error finding user');
-                res.status(500).send("Error interno del sistema"); 
+                return res.status(500).send("Error interno del sistema"); 
             }) 
         }else{
-            res.status(406).send('Datos no aceptables'); 
+            return res.status(406).send('Datos no aceptables'); 
         } 
     })
 
@@ -220,24 +215,24 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
             var password = sanitize(req.body.password);
             usersCollection.find({token:token}).toArray().then((result)=>{
                 var difference  = Date.now() - result[0].tokenTime 
-                if(result.length > 0 && difference < 86400000){
+                if(result.length === 1 && difference < 86400000){
                     bcrypt.hash(password, saltRounds, function (err,hash) {
                       usersCollection.updateOne({token:token},{$set:{password:hash},$unset:{token:"",tokenTime:""}}).then((result)=>{
-                            res.status(200).send(result);  
+                            return res.status(200).send(result);  
                         }).catch((err)=>{
-                            res.status(404).send("Usuario no encontrado en la base de datos.");  
+                            return res.status(404).send("Usuario no encontrado en la base de datos.");  
                             console.log(err);
                         }); 
                     });
                 }else{
-                    res.status(404).send("Token no válido"); 
+                    return res.status(404).send("Token no válido"); 
                 }
             }).catch((err)=>{
                 console.log(err);
-                res.status(500).send("Error interno del sistema");  
+                return res.status(500).send("Error interno del sistema");  
             }); 
         }else{
-            res.status(500).send("Error interno del sistema");  
+            return res.status(500).send("Error interno del sistema");  
         }
     })
 
