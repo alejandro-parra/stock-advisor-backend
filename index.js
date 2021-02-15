@@ -269,18 +269,18 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
             sendEmail("alexparra07@gmail.com",email,'Restablecer contraseña StockAdvisor',resetPasswordTemplate).then((response)=>{
                 if(response == 'success'){
                     usersCollection.updateOne({email:email},{$set:{token:randomToken, tokenTime:Date.now()}}).then((result)=>{
-                        res.status(200).send('success'); 
+                        return res.status(200).send('success'); 
                     }).catch((err)=>{
-                        res.status(500).send("Error interno del sistema");  
+                        return res.status(500).send("Error interno del sistema");  
                         console.log(err);
                     });
                 }
             },(error)=>{
-                res.status(500).send("Error interno del sistema");  
+                return res.status(500).send("Error interno del sistema");  
                 console.log(error);
             })
         }else{
-            res.status(406).send("Datos inválidos");  
+            return res.status(406).send("Datos inválidos");  
         }
     })
 
@@ -288,13 +288,13 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
         if(req.body.id != null && req.body.id != ''){
             var id = sanitize(req.body.id);
             usersCollection.deleteOne({_id:new ObjectId(id)}).then((items)=>{
-                res.status(200).send('Success');  
+                return res.status(200).send('Success');  
             }).catch((err)=>{
                 console.log(err);
-                res.status(500).send("Error interno del sistema");  
+                return res.status(500).send("Error interno del sistema");  
             })
         }else{
-            res.status(406).send("Datos inválidos");  
+            return res.status(406).send("Datos inválidos");  
         }
     })
      
