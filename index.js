@@ -1,19 +1,22 @@
 // run locally  mail=qdrwshctkvojeexp mailUser=alexparra07@gmail.com key=ab12n23j3423DSA3 node index.js
-const mongo = require('mongodb').MongoClient
+// const mongo = require('mongodb').MongoClient
+const Database = require('./services/Database');
+const router = require('./services/router');
+
 const express = require('express');
 const helmet = require('helmet') //protege de ataques con URL
 const bodyParser = require('body-parser') //parsear JSONs para enviarlos al front
 const cors = require('cors') //dominios permitidos 
 const bcrypt = require('bcrypt'); //encripta
 const crypto = require('crypto'); //random string generator (no es muy bueno para encriptar)
-const nodemailer = require('nodemailer');
+
 const Ddos = require('ddos')
 const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 const fs = require('fs'); //filesystem del servidor
 var ObjectId = require('mongodb').ObjectID;
 const ddos = new Ddos({ burst: 10, limit: 15 })
 const saltRounds = 10;
-const url = "mongodb+srv://stockmaster:kycpaco_280198@db.s775v.mongodb.net/StockAdvisor?retryWrites=true&w=majority";
+// const url = "mongodb+srv://stockmaster:kycpaco_280198@db.s775v.mongodb.net/StockAdvisor?retryWrites=true&w=majority";
 const key = process.env.key;
 
 var sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
@@ -22,6 +25,13 @@ const { check, validationResult } = require('express-validator'); //checar tipos
 const app = express();
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
 const protectedRoutes = express.Router(); //middleware para verificar si el usuario está loggeado
+
+Database.connectToServer(function(err, client) {
+    if (err) console.log(err);
+
+  // start the rest of your app here
+});
+
 
 protectedRoutes.use((req, res, next) => {
     let token = sanitize(req.headers['access-token']);
@@ -61,13 +71,7 @@ const corsOptions = {
 app.use(cors(corsOptions))
 //app.use(cors({origin: '*', optionsSuccessStatus: 200}))
 
-let transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.mailUser, // user for sending email
-        pass: process.env.mail, // password for the user used
-    }
-});
+
 
 app.use('/api', router);
 
@@ -80,23 +84,7 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
     const usersCollection = db.collection('Users');
 
     //AUXILIARY FUNCTIONS
-    function sendEmail(from, to, subject, html) {
-        return new Promise((resolve, reject) => {
-            let mailOptions = {
-                from: from,
-                to: to,
-                subject: subject,
-                html: html
-            };
-            transporter.sendMail(mailOptions, function (error, info) {
-                if (error) {
-                    reject(error)
-                } else {
-                    resolve('success')
-                }
-            });
-        });
-    }
+    
 
     async function verifyJoinToken(randomToken) {
         let result = await collectionLeagues.find({ joinToken: randomToken }).toArray()
@@ -114,20 +102,7 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
         * @desc Verify that the user token is not expired
         * @param {Object} req.headers[access-token] - The user token he wants to validate
     */
-    app.post('/validate-token', function (req, res) {
-        var token = req.headers['access-token'];
-        if (token) {
-            jwt.verify(token, app.get('key'), (err, decoded) => {
-                if (err) {
-                    res.status(500).send("Se cerró la sesión debido a un error");
-                } else {
-                    res.status(200).send("Success");
-                }
-            });
-        } else {
-            res.status(500).send("Se cerró la sesión debido a un error");
-        }
-    })
+    
 
     app.post('/register-user', [
         check('name').not().isEmpty(),
