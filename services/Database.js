@@ -7,7 +7,7 @@ let stocksCollection;
 
 async function connectToServer() {
     try {
-        let client = await mongo.connect(url, {useNewUrlParser: true, useUnifiedTopology: true, poolSize: 10 });
+        let client = await mongo.connect(process.env.DATABASE_URL, {useNewUrlParser: true, useUnifiedTopology: true, poolSize: 10 });
         console.log('Connected to mongodb');
         db = client.db('StockAdvisor');
         usersCollection = db.collection('Users');

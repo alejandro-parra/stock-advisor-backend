@@ -1,7 +1,7 @@
 const Database = require( '../services/Database' );
 
 async function registerUser(name, lastName, email, hash) { // arreglar esta funcion
-    usersCollection.find({ email: email }).toArray().then((results) => {
+    return Database.usersCollection.find({ email: email }).toArray().then((results) => {
         if (results.length > 0) {
             return 400;
         }
@@ -13,7 +13,7 @@ async function registerUser(name, lastName, email, hash) { // arreglar esta func
                 lastName: lastName,
                 operations: []
             };
-            usersCollection.insertOne(user).then((response) => {
+            Database.usersCollection.insertOne(user).then((response) => {
                 let payload = {
                     email: email,
                     id: response.insertedId

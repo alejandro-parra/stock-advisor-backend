@@ -2,6 +2,7 @@
 // const mongo = require('mongodb').MongoClient
 const Database = require('./services/Database');
 const router = require('./services/router');
+require('dotenv').config();
 
 const express = require('express');
 const helmet = require('helmet') //protege de ataques con URL
@@ -27,13 +28,6 @@ const url = process.env.DATABASE_URL;
 const app = express();
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
 const protectedRoutes = express.Router(); //middleware para verificar si el usuario está loggeado
-
-Database.connectToServer(function(err, client) {
-    if (err) console.log(err);
-
-  // start the rest of your app here
-});
-
 
 protectedRoutes.use((req, res, next) => {
     let token = sanitize(req.headers['access-token']);
