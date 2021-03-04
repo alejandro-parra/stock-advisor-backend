@@ -1,12 +1,10 @@
 const Database = require( '../services/Database' );
-const db = Database.getDb();
-const usersCollection = db.collection('Users');
 
-async function registerUser(name, lastName, email, hash) {
+async function registerUser(name, lastName, email, hash) { // arreglar esta funcion
     usersCollection.find({ email: email }).toArray().then((results) => {
         if (results.length > 0) {
             return 400;
-        } 
+        }
         else {
             let user = {
                 name: name,
@@ -41,4 +39,23 @@ async function registerUser(name, lastName, email, hash) {
     });
 }
 
+async function findUsersBy(method, data) {
+    
+    return Database.usersCollection.find({ [method]: data }).toArray();
+    // return usersCollection.find({ email: email }).toArray()
+}
+
+async function updateUserBy(method, data, params) {
+    return Database.usersCollection.updateOne({ [method]: data }, params);
+    // return usersCollection.updateOne({ token: token }, { $set: { password: hash }, $unset: { token: "", tokenTime: "" } }); // example of reset password
+}
+
+async function deleteUserBy(method, data) {
+    return Database.usersCollection.deleteOne({ [method]: data })
+    // return usersCollection.deleteOne({ _id: new ObjectId(id) })
+}
+
 module.exports.registerUser = registerUser;
+module.exports.findUsersBy = findUsersBy;
+module.exports.updateUserBy = updateUserBy;
+module.exports.deleteUserBy = deleteUserBy;
