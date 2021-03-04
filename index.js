@@ -20,7 +20,7 @@ const saltRounds = 10;
 const key = process.env.key;
 
 var sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
-const { check, validationResult } = require('express-validator'); //checar tipos de datos
+// const { check, validationResult } = require('express-validator'); //checar tipos de datos
 
 const app = express();
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
@@ -84,17 +84,6 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
     const usersCollection = db.collection('Users');
 
     //AUXILIARY FUNCTIONS
-    
-
-    async function verifyJoinToken(randomToken) {
-        let result = await collectionLeagues.find({ joinToken: randomToken }).toArray()
-        console.log(result)
-        if (result.length === 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
 
 
     //ENDPOINTS
@@ -104,54 +93,7 @@ mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 
     */
     
 
-    app.post('/register-user', [
-        check('name').not().isEmpty(),
-        check('lastName').not().isEmpty(),
-        check('email').isEmail(),
-        check('password').not().isEmpty()
-    ], function (req, res) {
-        console.log(req.body);
-        var password = sanitize(req.body.password);
-        var email = sanitize(req.body.email);
-        var name = sanitize(req.body.name);
-        var lastName = sanitize(req.body.lastName);
-
-        bcrypt.hash(password, saltRounds, function (err, hash) {
-            usersCollection.find({ email: email }).toArray().then((results) => {
-                if (results.length > 0) {
-                    res.status(400).send("El correo ya existe para una cuenta.");
-                } else {
-                    let user = {
-                        name: name,
-                        email: email,
-                        password: hash,
-                        lastName: lastName,
-                        operations: []
-                    };
-                    usersCollection.insertOne(user).then((response) => {
-                        let payload = {
-                            email: email,
-                            id: response.insertedId
-                        }
-                        let token = jwt.sign(payload, app.get('key'), {
-                            expiresIn: 604800
-                        });
-                        user.password = null;
-                        user.token = token;
-                        user.insertedId = response.insertedId;
-                        res.status(200).send(user);
-                    }).catch((err) => {
-                        console.log('insertion error')
-                        res.status(500).send("Error interno del sistema");
-                        console.log(err);
-                    })
-                }
-            }).catch((err) => {
-                res.status(500).send("Error interno del sistema");
-                console.log(err);
-            })
-        });
-    })
+    
 
     app.post('/login-user', [
         check('email').isEmail(),

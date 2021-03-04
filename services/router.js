@@ -1,9 +1,10 @@
 const express = require('express');
 const router = new express.Router();
-const Token = require('../controllers/Token')
+const Token = require('../controllers/Token');
+const User = require('../controllers/User');
 
 
-router.router('/validate-token').post(Token.post);
-
+router.route('/validate-token').post(Token.post);
+router.route('/register-user').post(User.registerUser);
 
 module.exports = router;
