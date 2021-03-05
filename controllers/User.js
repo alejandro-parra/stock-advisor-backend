@@ -37,7 +37,7 @@ async function loginUser(req, res, next) {
     console.log(req.body);
     if (req.body.email && req.body.password) {
         var password = sanitize(req.body.password);
-        var email = sanitize(req.body.email);\
+        var email = sanitize(req.body.email);
         var results;
         try {
             results = await User.findUsersBy("email", email);

@@ -36,8 +36,6 @@ protectedRoutes.use((req, res, next) => {
     }
 });
 
-// app.set('key', process.env.key);
-
 app.use(ddos.express);
 app.use(helmet())
 const whitelist = ['http://localhost:4200/'] //dominios que pueden entrar y hacer llamadas al back
@@ -52,7 +50,6 @@ const corsOptions = {
     optionsSuccessStatus: 200
 }
 app.use(cors(corsOptions))
-//app.use(cors({origin: '*', optionsSuccessStatus: 200}))
 
 async function startup() {
     try {
@@ -70,28 +67,3 @@ async function startup() {
 
 
 startup();
-
-// mongo.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 10 }, (err, client) => {
-
-
-//     //DATABASE VARIABLES
-//     // const db = client.db('StockAdvisor')
-//     // const usersCollection = db.collection('Users');
-
-//     //AUXILIARY FUNCTIONS
-
-
-//     //ENDPOINTS
-//     /**
-//         * @desc Verify that the user token is not expired
-//         * @param {Object} req.headers[access-token] - The user token he wants to validate
-//     */
-
-//     a
-
-//     if (err) {
-//         console.error(err)
-//         return
-//     }
-// })
-
