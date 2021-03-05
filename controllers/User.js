@@ -4,6 +4,7 @@ const User = require('../dbApi/User');
 const Utilities = require('./Utilities');
 const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 const crypto = require('crypto'); //random string generator (no es muy bueno para encriptar)
+var ObjectId = require('mongodb').ObjectID;
 
 async function registerUser(req, res, next) {
     // check('name').not().isEmpty(),
@@ -16,7 +17,7 @@ async function registerUser(req, res, next) {
     var name = sanitize(req.body.name);
     var lastName = sanitize(req.body.lastName);
 
-    bcrypt.hash(password, saltRounds, async function (err, hash) {
+    bcrypt.hash(password, process.env.SALT_ROUNDS, async function (err, hash) {
         var response = await User.registerUser(name, lastName, email, hash);
         if(response === 400) {
             return res.status(400).send("El correo ya existe para una cuenta.");
@@ -36,8 +37,14 @@ async function loginUser(req, res, next) {
     console.log(req.body);
     if (req.body.email && req.body.password) {
         var password = sanitize(req.body.password);
-        var email = sanitize(req.body.email);
-        var results = await User.findUsersBy("email", email);
+        var email = sanitize(req.body.email);\
+        var results;
+        try {
+            results = await User.findUsersBy("email", email);
+        } catch (err) {
+            console.log('Error finding user');
+            res.status(500).send("Error interno del sistema");
+        }
         if (results.length > 0) {
             let user = results[0];
             if (!bcrypt.compareSync(password, user.password)) {
@@ -57,30 +64,6 @@ async function loginUser(req, res, next) {
         } else {
             res.status(404).send("Usuario no encontrado en la base de datos.");
         }
-        // usersCollection.find({ email: email }).toArray().then((results) => {
-        //     if (results.length > 0) {
-        //         let user = results[0];
-        //         if (!bcrypt.compareSync(password, user.password)) {
-        //             res.status(400).send("Contraseña incorrecta");
-        //         } else {
-        //             let payload = {
-        //                 email: user.email,
-        //                 id: user._id
-        //             }
-        //             let token = jwt.sign(payload, process.env.KEY, {
-        //                 expiresIn: 604800
-        //             });
-        //             user.password = null;
-        //             user.token = token;
-        //             res.status(200).send(user);
-        //         }
-        //     } else {
-        //         res.status(404).send("Usuario no encontrado en la base de datos.");
-        //     }
-        // }).catch((err) => {
-        //     console.log('Error finding user');
-        //     res.status(500).send("Error interno del sistema");
-        // })
     } else {
         res.status(406).send('Datos no aceptables');
     }
@@ -94,16 +77,17 @@ async function resetPassword(req, res, next) {
         let result = await User.findUsersBy(token, userToken);
         var difference = Date.now() - result[0].tokenTime
         if (result.length > 0 && difference < 86400000) {
-            bcrypt.hash(password, saltRounds, async function (err, hash) {
+            bcrypt.hash(password, process.env.SALT_ROUNDS, async function (err, hash) {
                 var params = { $set: { password: hash }, $unset: { token: "", tokenTime: "" } };
-                var result = await User.updateUserBy("token", token, params);
+                var result;
+                try {
+                    result = await User.updateUserBy("token", token, params);
+                } catch (err) {
+                    res.status(404).send("Usuario no encontrado en la base de datos.");
+                    console.log(err);
+                }
+                
                 return res.status(200).send(result);
-                // usersCollection.updateOne({ token: token }, { $set: { password: hash }, $unset: { token: "", tokenTime: "" } }).then((result) => {
-                //     res.status(200).send(result);
-                // }).catch((err) => {
-                //     res.status(404).send("Usuario no encontrado en la base de datos.");
-                //     console.log(err);
-                // });
             });
         } else {
             res.status(404).send("Token no válido");
@@ -145,17 +129,15 @@ async function sendRecoveryToken(req, res, next) {
         let response = await Utilities.sendEmail("alexparra07@gmail.com", email, 'Restablecer contraseña StockAdvisor', resetPasswordTemplate);
         if (response == 'success') {
             let params = { $set: { token: randomToken, tokenTime: Date.now() } };
-            let result = await User.updateUserBy("email", email, params);
+            let result;
+            try {
+                result = await User.updateUserBy("email", email, params);
+            } catch (err) {
+                console.log(err);
+                return res.status(500).send("Error interno del sistema");
+                
+            }
             return res.status(200).send('success');
-            // usersCollection.updateOne({ email: email }, { $set: { token: randomToken, tokenTime: Date.now() } }).then((result) => {
-            //     res.status(200).send('success');
-            // }).catch((err) => {
-            //     res.status(500).send("Error interno del sistema");
-            //     console.log(err);
-            // });
-        } else {
-            console.log(error);
-            return res.status(500).send("Error interno del sistema");
         }
     } else {
         res.status(406).send("Datos inválidos");
@@ -165,14 +147,15 @@ async function sendRecoveryToken(req, res, next) {
 async function deletUser(req, res, next) {
     if (req.body.id != null && req.body.id != '') {
         var id = sanitize(req.body.id);
-        var items = await User.deleteUserBy("_id", new ObjectId(id));
+        var items;
+        try {
+            items = await User.deleteUserBy("_id", new ObjectId(id));
+        } catch (err) {
+            console.log(err);
+            return res.status(500).send("Error interno del sistema");
+        }
+         
         return res.status(200).send('Success');
-        // usersCollection.deleteOne({ _id: new ObjectId(id) }).then((items) => {
-        //     res.status(200).send('Success');
-        // }).catch((err) => {
-        //     console.log(err);
-        //     res.status(500).send("Error interno del sistema");
-        // })
     } else {
         res.status(406).send("Datos inválidos");
     }
@@ -202,7 +185,7 @@ app.post('/register-user',[
         var name = sanitize(req.body.name);
         var lastName = sanitize(req.body.lastName);
 
-        bcrypt.hash(password, saltRounds, function (err, hash) {
+        bcrypt.hash(password, process.env.SALT_ROUNDS, function (err, hash) {
             usersCollection.find({email:email}).toArray().then((results)=>{
                 if(results.length>0){
                     res.status(400).send("El correo ya existe para una cuenta."); 
@@ -284,7 +267,7 @@ app.post('/login-user', [
             usersCollection.find({ token: token }).toArray().then((result) => {
                 var difference = Date.now() - result[0].tokenTime
                 if (result.length > 0 && difference < 86400000) {
-                    bcrypt.hash(password, saltRounds, function (err, hash) {
+                    bcrypt.hash(password, process.env.SALT_ROUNDS, function (err, hash) {
                         usersCollection.updateOne({ token: token }, { $set: { password: hash }, $unset: { token: "", tokenTime: "" } }).then((result) => {
                             res.status(200).send(result);
                         }).catch((err) => {

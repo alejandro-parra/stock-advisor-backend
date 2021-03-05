@@ -1,5 +1,3 @@
-// run locally  mail=qdrwshctkvojeexp mailUser=alexparra07@gmail.com key=ab12n23j3423DSA3 node index.js
-// const mongo = require('mongodb').MongoClient
 const Database = require('./services/Database');
 const router = require('./services/router');
 require('dotenv').config();
@@ -7,23 +5,12 @@ require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet') //protege de ataques con URL
 const bodyParser = require('body-parser') //parsear JSONs para enviarlos al front
-const cors = require('cors') //dominios permitidos 
-const bcrypt = require('bcrypt'); //encripta
-const crypto = require('crypto'); //random string generator (no es muy bueno para encriptar)
+const cors = require('cors') //dominios permitidos
 
 const Ddos = require('ddos')
 const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
-const fs = require('fs'); //filesystem del servidor
-var ObjectId = require('mongodb').ObjectID;
 const ddos = new Ddos({ burst: 10, limit: 15 })
-const saltRounds = 10;
-// const url = "mongodb+srv://stockmaster:kycpaco_280198@db.s775v.mongodb.net/StockAdvisor?retryWrites=true&w=majority";
-const key = process.env.key;
-
 var sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
-// const { check, validationResult } = require('express-validator'); //checar tipos de datos
-
-const url = process.env.DATABASE_URL;
 
 const app = express();
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
