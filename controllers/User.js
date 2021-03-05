@@ -17,7 +17,7 @@ async function registerUser(req, res, next) {
     var name = sanitize(req.body.name);
     var lastName = sanitize(req.body.lastName);
 
-    bcrypt.hash(password, process.env.SALT_ROUNDS, async function (err, hash) {
+    bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS), async function (err, hash) {
         var response = await User.registerUser(name, lastName, email, hash);
         if(response === 400) {
             return res.status(400).send("El correo ya existe para una cuenta.");
@@ -77,7 +77,7 @@ async function resetPassword(req, res, next) {
         let result = await User.findUsersBy(token, userToken);
         var difference = Date.now() - result[0].tokenTime
         if (result.length > 0 && difference < 86400000) {
-            bcrypt.hash(password, process.env.SALT_ROUNDS, async function (err, hash) {
+            bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS), async function (err, hash) {
                 var params = { $set: { password: hash }, $unset: { token: "", tokenTime: "" } };
                 var result;
                 try {
@@ -185,7 +185,12 @@ app.post('/register-user',[
         var name = sanitize(req.body.name);
         var lastName = sanitize(req.body.lastName);
 
-        bcrypt.hash(password, process.env.SALT_ROUNDS, function (err, hash) {
+        bcrypt.hash(password, process.env.
+        
+        
+        
+        
+        OUNDS, function (err, hash) {
             usersCollection.find({email:email}).toArray().then((results)=>{
                 if(results.length>0){
                     res.status(400).send("El correo ya existe para una cuenta."); 
