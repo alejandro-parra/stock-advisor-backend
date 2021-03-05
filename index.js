@@ -13,9 +13,11 @@ const ddos = new Ddos({ burst: 10, limit: 15 })
 var sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
 
 const app = express();
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
-const protectedRoutes = express.Router(); //middleware para verificar si el usuario está loggeado
+// app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
+app.use(bodyParser.urlencoded({limit: '10mb',extended: true}))
+app.use(bodyParser.json({limit: '10mb', extended: true}));
 
+const protectedRoutes = express.Router(); //middleware para verificar si el usuario está loggeado
 protectedRoutes.use((req, res, next) => {
     let token = sanitize(req.headers['access-token']);
     let userId = sanitize(req.body.userId);
@@ -38,7 +40,7 @@ protectedRoutes.use((req, res, next) => {
 
 app.use(ddos.express);
 app.use(helmet())
-const whitelist = ['http://localhost:4200/'] //dominios que pueden entrar y hacer llamadas al back
+const whitelist = ['http://localhost:4200'] //dominios que pueden entrar y hacer llamadas al back
 const corsOptions = {
     origin: function (origin, callback) {
         if (whitelist.indexOf(origin) !== -1) {
@@ -55,8 +57,8 @@ async function startup() {
     try {
         let db = await Database.connectToServer();
         if (db === null) throw "Error connecting to database.";
-        app.use('/api', router);
-    
+        app.use('/', router);
+        
         app.listen(3000, function () {
             console.log('listening on 3000')
         })

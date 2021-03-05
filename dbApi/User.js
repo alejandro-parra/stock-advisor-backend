@@ -1,7 +1,7 @@
 const Database = require( '../services/Database' );
 
 async function registerUser(name, lastName, email, hash) { // arreglar esta funcion
-    return Database.usersCollection.find({ email: email }).toArray().then((results) => {
+    return Database.prueba.usersCollection.find({ email: email }).toArray().then((results) => {
         if (results.length > 0) {
             return 400;
         }
@@ -13,7 +13,7 @@ async function registerUser(name, lastName, email, hash) { // arreglar esta func
                 lastName: lastName,
                 operations: []
             };
-            Database.usersCollection.insertOne(user).then((response) => {
+            return Database.prueba.usersCollection.insertOne(user).then((response) => {
                 let payload = {
                     email: email,
                     id: response.insertedId
@@ -41,17 +41,17 @@ async function registerUser(name, lastName, email, hash) { // arreglar esta func
 
 async function findUsersBy(method, data) {
     
-    return Database.usersCollection.find({ [method]: data }).toArray();
+    return Database.prueba.usersCollection.find({ [method]: data }).toArray();
     // return usersCollection.find({ email: email }).toArray()
 }
 
 async function updateUserBy(method, data, params) {
-    return Database.usersCollection.updateOne({ [method]: data }, params);
+    return Database.prueba.usersCollection.updateOne({ [method]: data }, params);
     // return usersCollection.updateOne({ token: token }, { $set: { password: hash }, $unset: { token: "", tokenTime: "" } }); // example of reset password
 }
 
 async function deleteUserBy(method, data) {
-    return Database.usersCollection.deleteOne({ [method]: data })
+    return Database.prueba.usersCollection.deleteOne({ [method]: data })
     // return usersCollection.deleteOne({ _id: new ObjectId(id) })
 }
 
