@@ -1,7 +1,7 @@
 const mongo = require('mongodb').MongoClient
 const url = process.env.DATABASE_URL
 var db;
-const prueba = {
+const collections = {
     usersCollection: null,
     stocksCollection: null
 }
@@ -10,14 +10,14 @@ const prueba = {
 
 async function connectToServer() {
     try {
-        let client = await mongo.connect(process.env.DATABASE_URL, {useNewUrlParser: true, useUnifiedTopology: true, poolSize: 10 });
+        let client = await mongo.connect(process.env.DATABASE_URL, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 10 });
         console.log('Connected to mongodb');
         db = client.db('StockAdvisor');
-        prueba.usersCollection = db.collection('Users');
-        prueba.stocksCollection = db.collection('Stocks');
+        collections.usersCollection = db.collection('Users');
+        collections.stocksCollection = db.collection('Stocks');
         return db; // client.db('StockAdvisor');
-    } catch(err) {
-        console.log("error connecting to mogno: ", err);
+    } catch (err) {
+        console.log("error connecting to mongo: ", err);
         return null;
     }
 }
@@ -36,7 +36,7 @@ module.exports.connectToServer = connectToServer;
 module.exports.db = db;
 // module.exports.usersCollection = usersCollection;
 // module.exports.stocksCollection = stocksCollection;
-module.exports.prueba = prueba;
+module.exports.collections = collections;
 
 
 // module.exports = {

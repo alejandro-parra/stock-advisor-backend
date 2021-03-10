@@ -1,7 +1,7 @@
-const Database = require( '../services/Database' );
+const Database = require('../services/Database');
 
 async function registerUser(name, lastName, email, hash) { // arreglar esta funcion
-    return Database.prueba.usersCollection.find({ email: email }).toArray().then((results) => {
+    return Database.collections.usersCollection.find({ email: email }).toArray().then((results) => {
         if (results.length > 0) {
             return 400;
         }
@@ -13,7 +13,7 @@ async function registerUser(name, lastName, email, hash) { // arreglar esta func
                 lastName: lastName,
                 operations: []
             };
-            return Database.prueba.usersCollection.insertOne(user).then((response) => {
+            return Database.collections.usersCollection.insertOne(user).then((response) => {
                 let payload = {
                     email: email,
                     id: response.insertedId
@@ -26,32 +26,32 @@ async function registerUser(name, lastName, email, hash) { // arreglar esta func
                 user.insertedId = response.insertedId;
                 return user;
             })
-            .catch((err) => {
-                console.log('insertion error');
-                console.log(err);
-                return 500;
-            })
+                .catch((err) => {
+                    console.log('insertion error');
+                    console.log(err);
+                    return 500;
+                })
         }
     })
-    .catch((err) => {
-        console.log(err);
-        return 500;
-    });
+        .catch((err) => {
+            console.log(err);
+            return 500;
+        });
 }
 
 async function findUsersBy(method, data) {
-    
-    return Database.prueba.usersCollection.find({ [method]: data }).toArray();
+
+    return Database.collections.usersCollection.find({ [method]: data }).toArray();
     // return usersCollection.find({ email: email }).toArray()
 }
 
 async function updateUserBy(method, data, params) {
-    return Database.prueba.usersCollection.updateOne({ [method]: data }, params);
+    return Database.collections.usersCollection.updateOne({ [method]: data }, params);
     // return usersCollection.updateOne({ token: token }, { $set: { password: hash }, $unset: { token: "", tokenTime: "" } }); // example of reset password
 }
 
 async function deleteUserBy(method, data) {
-    return Database.prueba.usersCollection.deleteOne({ [method]: data })
+    return Database.collections.usersCollection.deleteOne({ [method]: data })
     // return usersCollection.deleteOne({ _id: new ObjectId(id) })
 }
 
