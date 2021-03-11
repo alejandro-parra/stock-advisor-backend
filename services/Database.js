@@ -1,5 +1,4 @@
-const mongo = require('mongodb').MongoClient
-const url = process.env.DATABASE_URL
+const mongo = require('mongodb').MongoClients
 var db;
 const collections = {
     usersCollection: null,

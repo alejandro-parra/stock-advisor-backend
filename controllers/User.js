@@ -7,34 +7,57 @@ const crypto = require('crypto'); //random string generator (no es muy bueno par
 var ObjectId = require('mongodb').ObjectID;
 var validator = require("email-validator");
 
+
 async function registerUser(req, res, next) {
-    // check('name').not().isEmpty(),
-    // check('lastName').not().isEmpty(),
-    // check('email').isEmail(),
-    // check('password').not().isEmpty()
+
     if (req.body.name && req.body.lastName && req.body.password && req.body.email) {
         return res.status(400).send("Hay datos faltantes del usuario.");
-    } else if (validator.validate(req.body.email)) {
+    } 
+    else if (validator.validate(req.body.email)) {
         return res.status(400).send("Formato de email invalido.");
     }
 
-    console.log(req.body);
     var password = sanitize(req.body.password);
     var email = sanitize(req.body.email);
     var name = sanitize(req.body.name);
     var lastName = sanitize(req.body.lastName);
 
     bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS), async function (err, hash) {
-        var response = await User.registerUser(name, lastName, email, hash);
-        if (response === 400) {
+        try {
+            var emailExists = await User.findUsersBy('email', email);
+        }
+        catch(error) {
+            console.log(error);
+            return res.status(500).send("Error interno del sistema");
+        }
+        if(emailExists.length > 0) {
             return res.status(400).send("El correo ya existe para una cuenta.");
         }
-        else if (response == 500) {
-            return res.status(500).send("Error interno del sistema.");
+        let user = {
+            name: name,
+            email: email,
+            password: hash,
+            lastName: lastName,
+            operations: []
+        };
+        try {
+            let insertResult = await User.registerUser(user);
+        } 
+        catch(error) {
+            console.log(error);
+            return res.status(500).send("Error interno del sistema");
         }
-        else if (response.user) {
-            return res.status(200).send(response.user);
+        let payload = {
+            email: email,
+            id:response.insertedId
         }
+        let token = jwt.sign(payload, app.get('key'), {
+            expiresIn: 604800
+        });
+        user.password = null;
+        user.token = token;
+        user.insertedId = response.insertedId;
+        return res.status(200).send(user);
     });
 }
 
