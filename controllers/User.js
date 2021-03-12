@@ -10,10 +10,10 @@ var validator = require("email-validator");
 
 async function registerUser(req, res, next) {
 
-    if (req.body.name && req.body.lastName && req.body.password && req.body.email) {
+    if (!req.body.name && !req.body.lastName && !req.body.password && !req.body.email) {
         return res.status(400).send("Hay datos faltantes del usuario.");
-    } 
-    else if (validator.validate(req.body.email)) {
+    }
+    else if (!validator.validate(req.body.email)) {
         return res.status(400).send("Formato de email invalido.");
     }
 
@@ -26,11 +26,11 @@ async function registerUser(req, res, next) {
         try {
             var emailExists = await User.findUsersBy('email', email);
         }
-        catch(error) {
+        catch (error) {
             console.log(error);
             return res.status(500).send("Error interno del sistema");
         }
-        if(emailExists.length > 0) {
+        if (emailExists.length > 0) {
             return res.status(400).send("El correo ya existe para una cuenta.");
         }
         let user = {
@@ -42,14 +42,14 @@ async function registerUser(req, res, next) {
         };
         try {
             let insertResult = await User.registerUser(user);
-        } 
-        catch(error) {
+        }
+        catch (error) {
             console.log(error);
             return res.status(500).send("Error interno del sistema");
         }
         let payload = {
             email: email,
-            id:response.insertedId
+            id: response.insertedId
         }
         let token = jwt.sign(payload, app.get('key'), {
             expiresIn: 604800
@@ -174,7 +174,7 @@ async function sendRecoveryToken(req, res, next) {
     }
 }
 
-async function deletUser(req, res, next) {
+async function deleteUser(req, res, next) {
     if (req.body.id != null && req.body.id != '') {
         var id = sanitize(req.body.id);
         var items;
@@ -195,7 +195,7 @@ module.exports.registerUser = registerUser;
 module.exports.loginUser = loginUser;
 module.exports.resetPassword = resetPassword;
 module.exports.sendRecoveryToken = sendRecoveryToken;
-module.exports.deletUser = deletUser;
+module.exports.deleteUser = deleteUser;
 
 
 

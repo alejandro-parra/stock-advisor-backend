@@ -1,4 +1,4 @@
-const mongo = require('mongodb').MongoClients
+const mongo = require('mongodb').MongoClient
 var db;
 const collections = {
     usersCollection: null,
