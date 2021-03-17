@@ -16,5 +16,8 @@ router.route('/delete-user').post(User.deleteUser);
 router.route('/search-stock').post(Stock.searchStock);
 router.route('/get-stock-details').post(Stock.getStockDetails);
 router.route('/buy-stock').post(Stock.buyStock);
+router.route('/sell-stock').post(Stock.sellStock);
+router.route('/my-operations').post(Stock.getUserOperations);
+
 
 module.exports = router;
