@@ -10,12 +10,12 @@ const cors = require('cors') //dominios permitidos
 const Ddos = require('ddos')
 const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 const ddos = new Ddos({ burst: 10, limit: 15 })
-var sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
 
-const app = express();
+var sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
 // app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
 app.use(bodyParser.urlencoded({limit: '10mb',extended: true}))
 app.use(bodyParser.json({limit: '10mb', extended: true}));
+
 
 const protectedRoutes = express.Router(); //middleware para verificar si el usuario está loggeado
 protectedRoutes.use((req, res, next) => {
@@ -66,6 +66,5 @@ async function startup() {
         console.log("error at index: ", err)
     }
 }
-
 
 startup();
