@@ -12,9 +12,10 @@ const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 const ddos = new Ddos({ burst: 10, limit: 15 })
 
 var sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
+const app = express();
 // app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
-app.use(bodyParser.urlencoded({limit: '10mb',extended: true}))
-app.use(bodyParser.json({limit: '10mb', extended: true}));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }))
+app.use(bodyParser.json({ limit: '10mb', extended: true }));
 
 
 const protectedRoutes = express.Router(); //middleware para verificar si el usuario está loggeado
@@ -42,12 +43,12 @@ app.use(ddos.express);
 app.use(helmet())
 const whitelist = ['http://localhost:4200'] //dominios que pueden entrar y hacer llamadas al back
 const corsOptions = {
-    origin: function (origin, callback) {
-        if (whitelist.indexOf(origin) !== -1) {
-            callback(null, true)
-        } else {
-            callback(new Error('Not allowed by CORS'))
-        }
+    origin: function (origin, callback) {       // -------------- AL TERMINAR EL PROYECTO ESTO SE TIENE QUE DESCOMENTAR (CORS) -----------------
+        // if (whitelist.indexOf(origin) !== -1) {              
+        callback(null, true)
+        // } else {
+        //     callback(new Error('Not allowed by CORS'))
+        // }
     },
     optionsSuccessStatus: 200
 }
@@ -58,7 +59,7 @@ async function startup() {
         let db = await Database.connectToServer();
         if (db === null) throw "Error connecting to database.";
         app.use('/', router);
-        
+
         app.listen(3000, function () {
             console.log('listening on 3000')
         })

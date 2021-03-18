@@ -1,26 +1,32 @@
 const Stock = require('../dbApi/Stock');
 const sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
+const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 
+async function searchStock(req, res, next) {
 
-async function searchStock(req, res, next) { // ------------ INCOMPLETA ----------------
-
-    if (!req.body.userId) {
+    if (!req.body.searchString) {
         return res.status(400).send("Datos Invalidos");
     }
-
     console.log(req.body);
-    let userId = sanitize(req.body.userId);
     let searchString = sanitize(req.body.searchString);
-    // revisar si es un user valido (no se como xd supongo usamos el userId)
-    try {
-        result = await Stock.searchStocksBy('stockName', searchString);
-    }
-    catch (err) {
-        console.log(err);
-        return res.status(500).send("Error interno del sistema");
+    let token = sanitize(req.body.token);
+
+    let verifiedToken = jwt.verify(token, process.env.KEY, function (err, result) {
+        console.log(result);
+    });
+
+    if (!verifiedToken) {
+        return res.status(401).send("Usuario invalido.");
+    } else {
+        try {
+            result = await Stock.searchStocksBy('stockCode', searchString);
+        }
+        catch (err) {
+            console.log(err);
+            return res.status(500).send("Error interno del sistema");
+        }
     }
     return res.status(200).send(result);
-
 }
 
 
@@ -34,15 +40,19 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
     let stockCode = sanitize(req.body.stockCode);
     // revisar si es un user valido (no se como xd supongo usamos el userId)
 
-    // Hacer una llamada a la api de polygon con la stock especificada.
+    let verifiedToken = jwt.verify(token, process.env.KEY, function (err, result) {
+        console.log(result);
+    });
 
-    // try {
-    //     result = await Stock.searchStocksBy('stockName', searchString);
-    // }
-    // catch (err) {
-    //     console.log(err);
-    //     return res.status(500).send("Error interno del sistema");
-    // }
+    console.log(verifiedToken);
+
+    try {
+        result = await Stock.getStockDetails('APPL', '2012-01-01', '2012-12-31');
+    }
+    catch (err) {
+        console.log(err);
+        return res.status(500).send("Error interno del sistema");
+    }
     return res.status(200).send(result);
 
 }
