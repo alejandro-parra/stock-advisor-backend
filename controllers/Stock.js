@@ -4,14 +4,18 @@ const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 
 async function searchStock(req, res, next) {
 
-    
     console.log(req.body);
     let searchString = sanitize(req.body.searchString);
-    let token = sanitize(req.body.token);
+    let userId = sanitize(req.body.userId);
+    let token = sanitize(req.headers['access-token']);
 
-    let verifiedToken = jwt.verify(token, process.env.KEY, function (err, result) {
-        console.log(result);
+
+    let verifiedToken;
+    await jwt.verify(token, process.env.KEY, function (err, result) {
+        verifiedToken = result;
+        // console.log(result);
     });
+
 
     if (!verifiedToken) {
         return res.status(401).send("Usuario invalido.");
@@ -26,14 +30,14 @@ async function searchStock(req, res, next) {
             }
         } else {
             try {
-                result = await Stock.searchStocksBy('stockCode', searchString);
+                result = await Stock.searchStocksBy('stockName', searchString);
             }
             catch (err) {
                 console.log(err);
                 return res.status(500).send("Error interno del sistema");
             }
         }
-        
+
     }
 
     return res.status(200).send(result);
@@ -42,48 +46,56 @@ async function searchStock(req, res, next) {
 
 async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA ----------------
 
-    if (!req.body.userId && !req.body.stockCode) {
+    if (!req.body.userId && !req.body.stockCode && !req.body.dateTime) {
         return res.status(400).send("Datos Invalidos");
     }
     console.log(req.body);
     let userId = sanitize(req.body.userId);
     let stockCode = sanitize(req.body.stockCode);
-    // revisar si es un user valido (no se como xd supongo usamos el userId)
 
-    // let verifiedToken = jwt.verify(token, process.env.KEY, function (err, result) {
-    //     console.log(result);
-    // });
+    let token = sanitize(req.headers['access-token']);
 
-    // console.log(verifiedToken);
+
+    let verifiedToken;
+    await jwt.verify(token, process.env.KEY, function (err, result) {
+        verifiedToken = result;
+        // console.log(result);
+    });
+
+    if (!verifiedToken) {
+        return res.status(401).send("Usuario invalido.");
+    }
+
     let data;
     let dataStock;
     var datetime = new Date();
     console.log(datetime);
     let year = datetime.getFullYear();
     let month = datetime.getMonth();
-    month = (month+1) < 10 ? "0"+(month+1) : (month+1);
+    month = (month + 1) < 10 ? "0" + (month + 1) : (month + 1);
     let day = datetime.getDate();
-    day = (day) < 10 ? "0"+(day) : (day);
+    day = (day) < 10 ? "0" + (day) : (day);
     let startDate = `${year}-${month}-${day}`;
-    let endDate = `${year-2}-${month}-${day}`;
-    
+    let endDate = `${year - 2}-${month}-${day}`;
+
     try {
-        data = await Stock.getStockDetails('AAPL', endDate, startDate);
+        data = await Stock.getStockDetails(stockCode, endDate, startDate);
         dataStock = await Stock.searchStocksBy('stockCode', stockCode)
-        console.log(dataStock[0]);
+        console.log(dataStock);
     }
     catch (err) {
         console.log(err);
         return res.status(500).send("Error interno del sistema");
     }
+
     lastDay = data[0].date;
     let year2 = lastDay.getFullYear();
     let month2 = lastDay.getMonth();
-    month2 = (month2+1) < 10 ? "0"+(month2+1) : (month2+1);
+    month2 = (month2 + 1) < 10 ? "0" + (month2 + 1) : (month2 + 1);
     let day2 = lastDay.getDate();
-    day2 = (day2+1) < 10 ? "0"+(day2+1) : (day2+1);
+    day2 = (day2 + 1) < 10 ? "0" + (day2 + 1) : (day2 + 1);
     let diaDeCorte = `${year2}-${month2}-${day2}`
-    
+
     let result = {
         stockName: dataStock[0].stockName,
         stockCode: dataStock[0].stockCode,
@@ -98,7 +110,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
 
 async function buyStock(req, res, next) {   // ------------ INCOMPLETA ----------------
 
-    if (!req.body.userId && !req.body.stockCode && !req.body.amountBought && !req.body.startingPrice) {
+    if (!req.body.userId && !req.body.stockCode && !req.body.amountBought) {
         return res.status(400).send("Datos Invalidos");
     }
     console.log(req.body);
@@ -107,39 +119,48 @@ async function buyStock(req, res, next) {   // ------------ INCOMPLETA ---------
     let amountBought = sanitize(req.body.amountBought);
     let startingPrice = sanitize(req.body.startingPrice);
 
-    // revisar si es un user valido (no se como xd supongo usamos el userId)
+    let token = sanitize(req.headers['access-token']);
+
+    let verifiedToken;
+    await jwt.verify(token, process.env.KEY, function (err, result) {
+        verifiedToken = result;
+        // console.log(result);
+    });
+
+    if (!verifiedToken) {
+        return res.status(401).send("Usuario invalido.");
+    }
     var datetime = new Date();
-    console.log(datetime);
+    // console.log(datetime);
     let year = datetime.getFullYear();
     let month = datetime.getMonth();
-    month = (month+1) < 10 ? "0"+(month+1) : (month+1);
+    month = (month + 1) < 10 ? "0" + (month + 1) : (month + 1);
     let day = datetime.getDate();
-    day = (day) < 10 ? "0"+(day) : (day);
-    let startDate = `${year}-${month}-${day}`;
-    let end = `${year}-${month}-${day-1}`;
+    day = (day) < 10 ? "0" + (day) : (day);
+    let todayDate = `${year}-${month}-${day}`;
+    let yesterdayDate = `${year - 1}-${month}-${day}`; // le restamos un año debido a que la api no toma las fechas de los fines de semana
     let data;
     let dataStock;
     try {
-        data = await Stock.getStockDetails('AAPL', end, startDate);
-        dataStock = await Stock.searchStocksBy('stockCode', stockCode)
-        console.log(dataStock[0]);
+        data = await Stock.getStockDetails(stockCode, yesterdayDate, todayDate);
+        dataStock = await Stock.searchStocksBy('stockCode', stockCode);
+        // console.log(dataStock[0]);
     }
     catch (err) {
         console.log(err);
         return res.status(500).send("Error interno del sistema");
     }
-    console.log(data);
-    console.log(dataStock);
+    // console.log(data);
     lastDay = data[0].date;
     let year2 = lastDay.getFullYear();
     let month2 = lastDay.getMonth();
-    month2 = (month2+1) < 10 ? "0"+(month2+1) : (month2+1);
+    month2 = (month2 + 1) < 10 ? "0" + (month2 + 1) : (month2 + 1);
     let day2 = lastDay.getDate();
-    day2 = (day2+1) < 10 ? "0"+(day2+1) : (day2+1);
+    day2 = (day2 + 1) < 10 ? "0" + (day2 + 1) : (day2 + 1);
     let diaDeCorte = `${year2}-${month2}-${day2}`
 
     if (data) {
-        let stockOperation = { 
+        let stockOperation = {
             stockCode: stockCode,
             companyImg: dataStock[0].companyImage,
             stockName: dataStock[0].stockName,
@@ -153,7 +174,8 @@ async function buyStock(req, res, next) {   // ------------ INCOMPLETA ---------
             let insertResult = await Stock.registerBoughtStock("operations", stockOperation, userId);   // checar dbApi Stock.js corregir parametros enviados
         }
         catch (err) {
-            return res.status(500).send("Error interno del sistema");
+            console.log(err);
+            return res.status(500).send("Error interno del sistemaaa");
         }
 
     } else {
@@ -172,17 +194,29 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     let userId = sanitize(req.body.userId);
     let _id = sanitize(req.body._id);
     let closingPrice = sanitize(req.body.closingPrice);
+    let token = sanitize(req.headers['access-token']);
 
-    // revisar si es un user valido (no se como xd supongo usamos el userId)
+
+    let verifiedToken;
+    await jwt.verify(token, process.env.KEY, function (err, result) {
+        verifiedToken = result;
+        // console.log(result);
+    });
+
+
+    if (!verifiedToken) {
+        return res.status(401).send("Usuario invalido.");
+    }
+
     var datetime = new Date();
     console.log(datetime);
     let year = datetime.getFullYear();
     let month = datetime.getMonth();
-    month = (month+1) < 10 ? "0"+(month+1) : (month+1);
+    month = (month + 1) < 10 ? "0" + (month + 1) : (month + 1);
     let day = datetime.getDate();
-    day = (day) < 10 ? "0"+(day) : (day);
+    day = (day) < 10 ? "0" + (day) : (day);
     let startDate = `${year}-${month}-${day}`;
-    let end = `${year}-${month}-${day-1}`;
+    let end = `${year}-${month}-${day - 1}`;
     let data;
     let dataStock;
     try {
@@ -199,9 +233,9 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     lastDay = data[0].date;
     let year2 = lastDay.getFullYear();
     let month2 = lastDay.getMonth();
-    month2 = (month2+1) < 10 ? "0"+(month2+1) : (month2+1);
+    month2 = (month2 + 1) < 10 ? "0" + (month2 + 1) : (month2 + 1);
     let day2 = lastDay.getDate();
-    day2 = (day2+1) < 10 ? "0"+(day2+1) : (day2+1);
+    day2 = (day2 + 1) < 10 ? "0" + (day2 + 1) : (day2 + 1);
     let diaDeCorte = `${year2}-${month2}-${day2}`
     try {
         let result = await Stock.getUserOperation("_id", _id);
@@ -237,8 +271,19 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
     }
     console.log(req.body);
     let userId = sanitize(req.body.userId);
+    let token = sanitize(req.headers['access-token']);
 
-    // revisar si es un user valido (no se como xd supongo usamos el userId)
+
+    let verifiedToken;
+    await jwt.verify(token, process.env.KEY, function (err, result) {
+        verifiedToken = result;
+        // console.log(result);
+    });
+
+    if (!verifiedToken) {
+        return res.status(401).send("Usuario invalido.");
+    }
+
     try {
         let result = await Stock.getUserOperations("_id", userId);
     }

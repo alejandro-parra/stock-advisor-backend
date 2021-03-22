@@ -51,7 +51,7 @@ async function registerUser(req, res, next) {
             email: email,
             id: response.insertedId
         }
-        let token = jwt.sign(payload, app.get('key'), {
+        let token = jwt.sign(payload, process.env.KEY, {
             expiresIn: 604800
         });
         user.password = null;

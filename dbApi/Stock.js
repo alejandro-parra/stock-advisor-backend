@@ -1,12 +1,15 @@
 const Database = require('../services/Database');
+var ObjectId = require('mongodb').ObjectID;
 const yahooFinance = require('yahoo-finance');
+var StockSymbolLookup = require('stock-symbol-lookup');
 
 async function searchStocksBy(method, data) {
     return Database.collections.stocksCollection.find({ [method]: data }).toArray();
 }
 
-async function registerBoughtStock(method, data) {
-    return Database.collections.usersCollection.insertOne({ [method]: data });
+async function registerBoughtStock(method, data, userID) {
+    return Database.collections.usersCollection.update({ _id: ObjectId(userID) }, { $push: { operations: data } });
+    // return Database.collections.usersCollection.insertOne({ [method]: data });
 }
 
 async function getUserOperation(method, data, userID) {     // get a specific operation of user by operations ID.
@@ -38,16 +41,27 @@ async function getStockDetails(symbol, startDate, endDate) {
     }, function (err, quotes) {
         if (err) {
             // return false;
+            console.log(err)
             result = false;
         }
         // console.log("quotes");
         // return quotes;
         result = quotes;
     });
-
     return result;
 }
 
+
+// ---------------- CALLS TO STOCK-SYMBOL-LOOKUP ----------------
+
+async function getSymbols() {
+    StockSymbolLookup.loadData()
+        .then((data) => {
+            return data;
+            // this can currently only be done server-side.
+            // data is now available to be searched inside or outside of this function.
+        });
+}
 
 
 module.exports.searchStocksBy = searchStocksBy;
