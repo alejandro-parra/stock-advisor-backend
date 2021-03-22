@@ -145,7 +145,7 @@ async function buyStock(req, res, next) {   // ------------ INCOMPLETA ---------
             stockName: dataStock[0].stockName,
             creationDate: diaDeCorte,
             amountBought: amountBought,
-            status: "activo",
+            status: "active",
             startingPrice: data[0].close
         }
         console.log(stockOperation);
@@ -174,6 +174,35 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     let closingPrice = sanitize(req.body.closingPrice);
 
     // revisar si es un user valido (no se como xd supongo usamos el userId)
+    var datetime = new Date();
+    console.log(datetime);
+    let year = datetime.getFullYear();
+    let month = datetime.getMonth();
+    month = (month+1) < 10 ? "0"+(month+1) : (month+1);
+    let day = datetime.getDate();
+    day = (day) < 10 ? "0"+(day) : (day);
+    let startDate = `${year}-${month}-${day}`;
+    let end = `${year}-${month}-${day-1}`;
+    let data;
+    let dataStock;
+    try {
+        data = await Stock.getStockDetails('AAPL', end, startDate);
+        dataStock = await Stock.searchStocksBy('stockCode', stockCode)
+        console.log(dataStock[0]);
+    }
+    catch (err) {
+        console.log(err);
+        return res.status(500).send("Error interno del sistema");
+    }
+    console.log(data);
+    console.log(dataStock);
+    lastDay = data[0].date;
+    let year2 = lastDay.getFullYear();
+    let month2 = lastDay.getMonth();
+    month2 = (month2+1) < 10 ? "0"+(month2+1) : (month2+1);
+    let day2 = lastDay.getDate();
+    day2 = (day2+1) < 10 ? "0"+(day2+1) : (day2+1);
+    let diaDeCorte = `${year2}-${month2}-${day2}`
     try {
         let result = await Stock.getUserOperation("_id", _id);
     }
@@ -184,8 +213,8 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
 
     if (result) {
         let stockUpdateData = {
-            closingPrice: closingPrice,
-            closingDate: 'SET TODAYS DATE HERE',            // falta poner la fecha de hoy
+            closingPrice: data[0].close,
+            closingDate: diaDeCorte,
             status: 'closed'
         }
         try {
@@ -196,7 +225,7 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
         }
 
     } else {
-        // return esta operacion no existe.
+        return res.status(400).send("Esta operacion no existe");
     }
     return res.status(200).send();
 }
