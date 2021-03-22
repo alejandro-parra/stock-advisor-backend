@@ -4,7 +4,14 @@ const yahooFinance = require('yahoo-finance');
 var StockSymbolLookup = require('stock-symbol-lookup');
 
 async function searchStocksBy(method, data) {
-    return Database.collections.stocksCollection.find({ [method]: data }).toArray();
+    let res;
+    if (method === "_id") {
+        res = await Database.collections.stocksCollection.find({ _id: data }).toArray()
+    } else {
+        res = await Database.collections.stocksCollection.find({ [method]: data }).toArray();
+    }
+    console.log(res);
+    return res;
 }
 
 async function registerBoughtStock(method, data, userID) {

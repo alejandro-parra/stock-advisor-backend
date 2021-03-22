@@ -1,6 +1,7 @@
 const Stock = require('../dbApi/Stock');
 const sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
 const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
+var ObjectId = require('mongodb').ObjectID;
 
 async function searchStock(req, res, next) {
 
@@ -77,17 +78,19 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
     day = (day) < 10 ? "0" + (day) : (day);
     let startDate = `${year}-${month}-${day}`;
     let endDate = `${year - 2}-${month}-${day}`;
-
+    console.log(stockCode);
+    
     try {
-        data = await Stock.getStockDetails(stockCode, endDate, startDate);
-        dataStock = await Stock.searchStocksBy('stockCode', stockCode)
-        console.log(dataStock);
+        dataStock = await Stock.searchStocksBy('_id', new ObjectId(stockCode));
+        if (dataStock.length !== 1) return res.status(404).send("No se encontro en el sistema");
+        data = await Stock.getStockDetails(dataStock[0].stockCode, endDate, startDate);
+        if (!data) return res.status(404).send("Yahoo esta caido :(");
     }
     catch (err) {
         console.log(err);
         return res.status(500).send("Error interno del sistema");
     }
-
+    // console.log(data);
     lastDay = data[0].date;
     let year2 = lastDay.getFullYear();
     let month2 = lastDay.getMonth();
@@ -102,8 +105,9 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         companyImage: dataStock[0].companyImage,
         actualPrice: data[0].close,
         updateDate: diaDeCorte,
-        graphData: data
+        graphData: data.map( (item) => { return {time: item.date, value: item.close} })
     }
+    
     return res.status(200).send(result);
 
 }
