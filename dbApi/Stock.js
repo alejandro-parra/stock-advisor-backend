@@ -21,21 +21,31 @@ async function getUsersOperations(method, data) {
     return Database.collections.stocksCollection.find({ [method]: data }).toArray();
 }
 
+async function getAllStocks() {
+    return Database.collections.stocksCollection.find().toArray();
+}
+
 
 // ---------------- CALLS TO YAHOO FINANCE ----------------
 
 async function getStockDetails(symbol, startDate, endDate) {
-    yahooFinance.historical({
-        symbol: symbol,
+    let result;
+    await yahooFinance.historical({
+        symbol: symbol, //'APPL'
         from: startDate,  //'2012-01-01'
         to: endDate, // '2012-12-31'
         // period: 'd'  // 'd' (daily), 'w' (weekly), 'm' (monthly), 'v' (dividends only)
     }, function (err, quotes) {
         if (err) {
-            return false;
+            // return false;
+            result = false;
         }
-        return quotes;
+        // console.log("quotes");
+        // return quotes;
+        result = quotes;
     });
+
+    return result;
 }
 
 
@@ -46,3 +56,4 @@ module.exports.getUserOperation = getUserOperation;
 module.exports.updateOperation = updateOperation;
 module.exports.getUsersOperations = getUsersOperations;
 module.exports.getStockDetails = getStockDetails;
+module.exports.getAllStocks = getAllStocks;

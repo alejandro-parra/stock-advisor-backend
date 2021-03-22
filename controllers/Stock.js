@@ -4,9 +4,7 @@ const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 
 async function searchStock(req, res, next) {
 
-    if (!req.body.searchString) {
-        return res.status(400).send("Datos Invalidos");
-    }
+    
     console.log(req.body);
     let searchString = sanitize(req.body.searchString);
     let token = sanitize(req.body.token);
@@ -18,14 +16,26 @@ async function searchStock(req, res, next) {
     if (!verifiedToken) {
         return res.status(401).send("Usuario invalido.");
     } else {
-        try {
-            result = await Stock.searchStocksBy('stockCode', searchString);
+        if (!req.body.searchString) {
+            try {
+                result = await Stock.getAllStocks();
+            }
+            catch (err) {
+                console.log(err);
+                return res.status(500).send("Error interno del sistema");
+            }
+        } else {
+            try {
+                result = await Stock.searchStocksBy('stockCode', searchString);
+            }
+            catch (err) {
+                console.log(err);
+                return res.status(500).send("Error interno del sistema");
+            }
         }
-        catch (err) {
-            console.log(err);
-            return res.status(500).send("Error interno del sistema");
-        }
+        
     }
+
     return res.status(200).send(result);
 }
 
@@ -40,18 +50,47 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
     let stockCode = sanitize(req.body.stockCode);
     // revisar si es un user valido (no se como xd supongo usamos el userId)
 
-    let verifiedToken = jwt.verify(token, process.env.KEY, function (err, result) {
-        console.log(result);
-    });
+    // let verifiedToken = jwt.verify(token, process.env.KEY, function (err, result) {
+    //     console.log(result);
+    // });
 
-    console.log(verifiedToken);
-
+    // console.log(verifiedToken);
+    let data;
+    let dataStock;
+    var datetime = new Date();
+    console.log(datetime);
+    let year = datetime.getFullYear();
+    let month = datetime.getMonth();
+    month = (month+1) < 10 ? "0"+(month+1) : (month+1);
+    let day = datetime.getDate();
+    day = (day) < 10 ? "0"+(day) : (day);
+    let startDate = `${year}-${month}-${day}`;
+    let endDate = `${year-2}-${month}-${day}`;
+    
     try {
-        result = await Stock.getStockDetails('APPL', '2012-01-01', '2012-12-31');
+        data = await Stock.getStockDetails('AAPL', endDate, startDate);
+        dataStock = await Stock.searchStocksBy('stockCode', stockCode)
+        console.log(dataStock[0]);
     }
     catch (err) {
         console.log(err);
         return res.status(500).send("Error interno del sistema");
+    }
+    lastDay = data[0].date;
+    let year2 = lastDay.getFullYear();
+    let month2 = lastDay.getMonth();
+    month2 = (month2+1) < 10 ? "0"+(month2+1) : (month2+1);
+    let day2 = lastDay.getDate();
+    day2 = (day2+1) < 10 ? "0"+(day2+1) : (day2+1);
+    let diaDeCorte = `${year2}-${month2}-${day2}`
+    
+    let result = {
+        stockName: dataStock[0].stockName,
+        stockCode: dataStock[0].stockCode,
+        companyImage: dataStock[0].companyImage,
+        actualPrice: data[0].close,
+        updateDate: diaDeCorte,
+        graphData: data
     }
     return res.status(200).send(result);
 
@@ -69,20 +108,47 @@ async function buyStock(req, res, next) {   // ------------ INCOMPLETA ---------
     let startingPrice = sanitize(req.body.startingPrice);
 
     // revisar si es un user valido (no se como xd supongo usamos el userId)
+    var datetime = new Date();
+    console.log(datetime);
+    let year = datetime.getFullYear();
+    let month = datetime.getMonth();
+    month = (month+1) < 10 ? "0"+(month+1) : (month+1);
+    let day = datetime.getDate();
+    day = (day) < 10 ? "0"+(day) : (day);
+    let startDate = `${year}-${month}-${day}`;
+    let end = `${year}-${month}-${day-1}`;
+    let data;
+    let dataStock;
     try {
-        let result = await Stock.searchStocksBy("stockCode", stockCode);
+        data = await Stock.getStockDetails('AAPL', end, startDate);
+        dataStock = await Stock.searchStocksBy('stockCode', stockCode)
+        console.log(dataStock[0]);
     }
     catch (err) {
         console.log(err);
         return res.status(500).send("Error interno del sistema");
     }
+    console.log(data);
+    console.log(dataStock);
+    lastDay = data[0].date;
+    let year2 = lastDay.getFullYear();
+    let month2 = lastDay.getMonth();
+    month2 = (month2+1) < 10 ? "0"+(month2+1) : (month2+1);
+    let day2 = lastDay.getDate();
+    day2 = (day2+1) < 10 ? "0"+(day2+1) : (day2+1);
+    let diaDeCorte = `${year2}-${month2}-${day2}`
 
-    if (result) {
-        let stockOperation = {      // falta insertar mas datos obtenidos de la api de poligon
+    if (data) {
+        let stockOperation = { 
             stockCode: stockCode,
+            companyImg: dataStock[0].companyImage,
+            stockName: dataStock[0].stockName,
+            creationDate: diaDeCorte,
             amountBought: amountBought,
-            startingPrice: startingPrice
+            status: "activo",
+            startingPrice: data[0].close
         }
+        console.log(stockOperation);
         try {
             let insertResult = await Stock.registerBoughtStock("operations", stockOperation, userId);   // checar dbApi Stock.js corregir parametros enviados
         }
@@ -91,9 +157,9 @@ async function buyStock(req, res, next) {   // ------------ INCOMPLETA ---------
         }
 
     } else {
-        // return ese stock no existe
+        return res.status(400).send("Error, el stock no existe en el sistema");
     }
-    return res.status(200).send();
+    return res.status(200).send("Compra hecha de manera exitosa");
 }
 
 
