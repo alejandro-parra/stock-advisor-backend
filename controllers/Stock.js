@@ -227,7 +227,7 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     } else {
         return res.status(400).send("Esta operacion no existe");
     }
-    return res.status(200).send();
+    return res.status(200).send("Compra finalizada de manera exitosa");
 }
 
 async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA ----------------
