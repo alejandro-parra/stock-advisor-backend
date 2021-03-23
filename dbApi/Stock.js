@@ -27,8 +27,8 @@ async function updateOperation(method, data, userID) {
     return Database.collections.usersCollection.updateOne({ "_id": userID }, { [method]: data });
 }
 
-async function getUsersOperations(method, data) {
-    return Database.collections.stocksCollection.find({ [method]: data }).toArray();
+async function getUsersOperations(data) {
+    return Database.collections.stocksCollection.find({ _id: ObjectId(data) }).toArray();
 }
 
 async function getAllStocks() {

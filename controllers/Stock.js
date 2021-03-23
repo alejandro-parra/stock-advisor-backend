@@ -302,14 +302,14 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
     }
 
     try {
-        let result = await Stock.getUserOperations("_id", userId);
+        let result = await Stock.getUserOperations(userId);
     }
     catch (err) {
         console.log(err);
         return res.status(500).send("Error interno del sistema");
     }
 
-    return res.status(200).send(result.operations);
+    return res.status(200).send(result[0].operations);
 }
 
 
