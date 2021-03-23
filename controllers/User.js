@@ -156,7 +156,9 @@ async function sendRecoveryToken(req, res, next) {
         </h2></td></tr><tr style="border-collapse:collapse"><td align="left" style="padding:0;Margin:0;padding-bottom:5px"><p style="Margin:0;-webkit-text-size-adjust:none;-ms-text-size-adjust:none;mso-line-height-rule:exactly;font-size:14px;font-family:helvetica, 'helvetica neue', arial, verdana, sans-serif;line-height:21px;color:#FFFFFF">No dude en contactarnos</p></td></tr></table></td></tr></table></td></tr></table></td></tr></table></td></tr></table></div></body>
         </html>
         `
-        let response = await Utilities.sendEmail("alexparra07@gmail.com", email, 'Restablecer contraseña StockAdvisor', resetPasswordTemplate);
+        let response = await Utilities.sendEmail("alexparra07@gmail.com", email, 'Restablecer contraseña StockAdvisor', resetPasswordTemplate).catch((err) => {
+            res.status(500).send("Error mandando el correo");
+        });
         if (response == 'success') {
             let params = { $set: { token: randomToken, tokenTime: Date.now() } };
             let result;

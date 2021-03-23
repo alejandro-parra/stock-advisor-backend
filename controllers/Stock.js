@@ -87,13 +87,13 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         dataStock = await Stock.searchStocksBy('_id', new ObjectId(stockCode));
         if (dataStock.length !== 1) return res.status(404).send("No se encontro en el sistema");
         data = await Stock.getStockDetails(dataStock[0].stockCode, endDate, startDate);
-        if (!data) return res.status(404).send("Yahoo esta caido :(");
+        if (data.length === 0) return res.status(404).send("Yahoo esta caido :(");
     }
     catch (err) {
         console.log(err);
         return res.status(500).send("Error interno del sistema");
     }
-    // console.log(data);
+    console.log(data);
     lastDay = data[0].date;
     let year2 = lastDay.getFullYear();
     let month2 = lastDay.getMonth();
@@ -114,7 +114,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
             let month3 = dataInfo.getMonth();
             month3 = (month3 + 1) < 10 ? "0" + (month3 + 1) : (month3 + 1);
             let day3 = dataInfo.getDate();
-            day3 = (day3 + 1) < 10 ? "0" + (day3 + 1) : (day3 + 1);
+            day3 = (day3) < 10 ? "0" + (day3) : (day3);
             let diaDeCorte2 = `${year3}-${month3}-${day3}`
             return {time: diaDeCorte2, value: item.close} 
         }),
