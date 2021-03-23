@@ -178,6 +178,7 @@ async function buyStock(req, res, next) {   // ------------ INCOMPLETA ---------
 
     if (data) {
         let stockOperation = {
+            _id: new ObjectId(),
             stockCode: stockCode,
             companyImg: dataStock[0].companyImage,
             stockName: dataStock[0].stockName,
