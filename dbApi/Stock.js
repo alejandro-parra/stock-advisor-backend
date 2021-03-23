@@ -10,7 +10,7 @@ async function searchStocksBy(method, data) {
     } else {
         res = await Database.collections.stocksCollection.find({ [method]: data }).toArray();
     }
-    console.log(res);
+    // console.log(res);
     return res;
 }
 
@@ -19,12 +19,12 @@ async function registerBoughtStock(method, data, userID) {
     // return Database.collections.usersCollection.insertOne({ [method]: data });
 }
 
-async function getUserOperation(method, data, userID) {     // get a specific operation of user by operations ID.
-    return Database.collections.usersCollection.find({ "_id": userID, "operations": { [method]: data } });
+async function getUserOperation(userID) {     // get a specific operation of user by operations ID.
+    return Database.collections.usersCollection.find({ "_id": userID });
 }
 
-async function updateOperation(method, data, userID) {
-    return Database.collections.usersCollection.updateOne({ "_id": userID }, { [method]: data });
+async function updateOperation(method, data, userID, operationId) {
+    return Database.collections.usersCollection.updateOne({ _id: ObjectId(userID), operations: { $elemMatch: { _id: ObjectId(operationId) } } }, { $set: { "operations.$.status": data.status, "operations.$.closingDate": data.closingDate, "operations.$.closingPrice": data.closingPrice } });
 }
 
 async function getUsersOperations(data) {
@@ -48,7 +48,7 @@ async function getStockDetails(symbol, startDate, endDate) {
     }, function (err, quotes) {
         if (err) {
             // return false;
-            console.log(err)
+            // console.log(err)
             result = false;
         }
         // console.log("quotes");
