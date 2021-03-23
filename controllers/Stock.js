@@ -315,7 +315,7 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
         closedOperations: result[0].operations.filter( (item) => { if(item.status !== "active" ) return item })
     }
 
-    return res.status(200).send(result[0].operations);
+    return res.status(200).send(finalRes);
 }
 
 
