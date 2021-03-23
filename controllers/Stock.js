@@ -105,7 +105,16 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         companyImage: dataStock[0].companyImage,
         actualPrice: data[0].close,
         updateDate: diaDeCorte,
-        graphData: data.map( (item) => { return {time: item.date, value: item.close} })
+        graphData: data.map( (item) => { 
+            dataInfo = item.date;
+            let year3 = dataInfo.getFullYear();
+            let month3 = dataInfo.getMonth();
+            month3 = (month3 + 1) < 10 ? "0" + (month3 + 1) : (month3 + 1);
+            let day3 = dataInfo.getDate();
+            day3 = (day3 + 1) < 10 ? "0" + (day3 + 1) : (day3 + 1);
+            let diaDeCorte2 = `${year3}-${month3}-${day3}`
+            return {time: diaDeCorte2, value: item.close} 
+        })
     }
     
     return res.status(200).send(result);
