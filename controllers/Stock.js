@@ -310,6 +310,10 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
         console.log(err);
         return res.status(500).send("Error interno del sistema");
     }
+    let finalRes = {
+        activeOperations: result[0].operations.filter( (item) => { if(item.status === "active" ) return item }),
+        closedOperations: result[0].operations.filter( (item) => { if(item.status !== "active" ) return item })
+    }
 
     return res.status(200).send(result[0].operations);
 }
