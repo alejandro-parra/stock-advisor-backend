@@ -208,23 +208,24 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     if (!req.body.userId && !req.body._id && !req.body.closingPrice) {
         return res.status(400).send("Datos Invalidos");
     }
-    console.log(req.body);
+    // console.log(req.body);
     let userId = sanitize(req.body.userId);
     let _id = sanitize(req.body._id);
     let closingPrice = sanitize(req.body.closingPrice);
     let token = sanitize(req.headers['access-token']);
+    let stockCode = sanitize(req.body.stockCode);
 
 
     let verifiedToken;
-    await jwt.verify(token, process.env.KEY, function (err, result) {
-        verifiedToken = result;
-        // console.log(result);
-    });
+    // await jwt.verify(token, process.env.KEY, function (err, result) {
+    //     verifiedToken = result;
+    //     // console.log(result);
+    // });
 
 
-    if (!verifiedToken) {
-        return res.status(401).send("Usuario invalido.");
-    }
+    // if (!verifiedToken) {
+    //     return res.status(401).send("Usuario invalido.");
+    // }
 
     var datetime = new Date();
     console.log(datetime);
@@ -234,20 +235,32 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     let day = datetime.getDate();
     day = (day) < 10 ? "0" + (day) : (day);
     let startDate = `${year}-${month}-${day}`;
-    let end = `${year}-${month}-${day - 1}`;
+    let end = `${year-1}-${month}-${day}`;
     let data;
     let dataStock;
+    let result;
     try {
-        data = await Stock.getStockDetails('AAPL', end, startDate);
-        dataStock = await Stock.searchStocksBy('stockCode', stockCode)
-        console.log(dataStock[0]);
+        result = await Stock.getUsersOperations(userId);
     }
     catch (err) {
-        console.log(err);
+        // console.log(err);
         return res.status(500).send("Error interno del sistema");
     }
-    console.log(data);
-    console.log(dataStock);
+    let finalOperation = result[0].operations.filter(item => item._id.toString() === _id );
+    console.log(finalOperation)
+
+
+    try {
+        data = await Stock.getStockDetails(stockCode, end, startDate);
+        dataStock = await Stock.searchStocksBy('stockCode', stockCode)
+        // console.log(dataStock[0]);
+    }
+    catch (err) {
+        // console.log(err);
+        return res.status(500).send("Error interno del sistema");
+    }
+    // console.log(data);
+    // console.log(dataStock);
     lastDay = data[0].date;
     let year2 = lastDay.getFullYear();
     let month2 = lastDay.getMonth();
@@ -255,13 +268,7 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     let day2 = lastDay.getDate();
     day2 = (day2 + 1) < 10 ? "0" + (day2 + 1) : (day2 + 1);
     let diaDeCorte = `${year2}-${month2}-${day2}`
-    try {
-        let result = await Stock.getUserOperation("_id", _id);
-    }
-    catch (err) {
-        console.log(err);
-        return res.status(500).send("Error interno del sistema");
-    }
+    
 
     if (result) {
         let stockUpdateData = {
@@ -269,12 +276,15 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
             closingDate: diaDeCorte,
             status: 'closed'
         }
+        let insertResult;
         try {
-            let insertResult = await Stock.updateOperation("operations", stockUpdateData);  //no se si hice correctamente la query
+            insertResult = await Stock.updateOperation("operations", stockUpdateData, userId, _id);  //no se si hice correctamente la query
         }
         catch (err) {
+            console.log(err)
             return res.status(500).send("Error interno del sistema");
         }
+        console.log(insertResult)
 
     } else {
         return res.status(400).send("Esta operacion no existe");
