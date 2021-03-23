@@ -1,4 +1,5 @@
 const Stock = require('../dbApi/Stock');
+const User = require("../dbApi/User");
 const sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
 const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 var ObjectId = require('mongodb').ObjectID;
@@ -79,6 +80,8 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
     let startDate = `${year}-${month}-${day}`;
     let endDate = `${year - 5}-${month}-${day}`;
     console.log(stockCode);
+    console.log(userId);
+    let userInfo = await User.findUsersById(userId);
     
     try {
         dataStock = await Stock.searchStocksBy('_id', new ObjectId(stockCode));
@@ -114,7 +117,8 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
             day3 = (day3) < 10 ? "0" + (day3) : (day3);
             let diaDeCorte2 = `${year3}-${month3}-${day3}`
             return {time: diaDeCorte2, value: item.close} 
-        })
+        }),
+        myOperations: userInfo[0].operations.map( (item) => { if(item.stockCode === dataStock[0].stockCode) return item })
     }
     
     return res.status(200).send(result);
