@@ -118,7 +118,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
             let diaDeCorte2 = `${year3}-${month3}-${day3}`
             return {time: diaDeCorte2, value: item.close} 
         }),
-        myOperations: userInfo[0].operations
+        myOperations: userInfo[0].operations.map( (item) => { if(item.stockCode === dataStock[0].stockCode) return item })
     }
     
     return res.status(200).send(result);
