@@ -178,6 +178,7 @@ async function buyStock(req, res, next) {   // ------------ INCOMPLETA ---------
 
     if (data) {
         let stockOperation = {
+            _id: new ObjectId(),
             stockCode: stockCode,
             companyImg: dataStock[0].companyImage,
             stockName: dataStock[0].stockName,
@@ -302,7 +303,7 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
     }
 
     try {
-        let result = await Stock.getUserOperations(userId);
+        let result = await Stock.getUsersOperations(userId);
     }
     catch (err) {
         console.log(err);
