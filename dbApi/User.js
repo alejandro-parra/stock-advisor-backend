@@ -1,4 +1,5 @@
 const Database = require('../services/Database');
+var ObjectId = require('mongodb').ObjectID;
 
 async function registerUser(user) {
     return Database.collections.usersCollection.insertOne(user);
@@ -7,6 +8,12 @@ async function registerUser(user) {
 async function findUsersBy(method, data) {
 
     return Database.collections.usersCollection.find({ [method]: data }).toArray();
+    // return usersCollection.find({ email: email }).toArray()
+}
+
+async function findUsersById(data) {
+
+    return Database.collections.usersCollection.find({ _id: ObjectId(data) }).toArray();
     // return usersCollection.find({ email: email }).toArray()
 }
 
@@ -24,3 +31,4 @@ module.exports.registerUser = registerUser;
 module.exports.findUsersBy = findUsersBy;
 module.exports.updateUserBy = updateUserBy;
 module.exports.deleteUserBy = deleteUserBy;
+module.exports.findUsersById = findUsersById;
