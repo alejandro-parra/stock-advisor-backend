@@ -283,7 +283,7 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
 }
 
 async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA ----------------
-
+    let result;
     if (!req.body.userId) {
         return res.status(400).send("Datos Invalidos");
     }
@@ -303,7 +303,8 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
     }
 
     try {
-        let result = await Stock.getUsersOperations(userId);
+        result = await Stock.getUsersOperations(userId);
+        console.log(result)
     }
     catch (err) {
         console.log(err);
