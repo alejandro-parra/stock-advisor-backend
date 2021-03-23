@@ -51,7 +51,7 @@ async function searchStock(req, res, next) {
 
 async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA ----------------
 
-    if (!req.body.userId || !req.body.stockCode || !req.body.dateTime) {
+    if (!req.body.userId || !req.body.stockCode) {
         return res.status(400).send("Datos Invalidos");
     }
     console.log(req.body);
@@ -209,27 +209,26 @@ async function buyStock(req, res, next) {
 
 async function sellStock(req, res, next) {   // ------------ INCOMPLETA ----------------
 
-    if (!req.body.userId || !req.body._id || !req.body.closingPrice) {
+    if (!req.body.userId || !req.body._id) {
         return res.status(400).send("Datos Invalidos");
     }
     // console.log(req.body);
     let userId = sanitize(req.body.userId);
     let _id = sanitize(req.body._id);
-    let closingPrice = sanitize(req.body.closingPrice);
     let token = sanitize(req.headers['access-token']);
     let stockCode = sanitize(req.body.stockCode);
 
 
     let verifiedToken;
-    // await jwt.verify(token, process.env.KEY, function (err, result) {
-    //     verifiedToken = result;
-    //     // console.log(result);
-    // });
+    await jwt.verify(token, process.env.KEY, function (err, result) {
+        verifiedToken = result;
+        // console.log(result);
+    });
 
 
-    // if (!verifiedToken) {
-    //     return res.status(401).send("Usuario invalido.");
-    // }
+    if (!verifiedToken) {
+        return res.status(401).send("Usuario invalido.");
+    }
 
     var datetime = new Date();
     console.log(datetime);
