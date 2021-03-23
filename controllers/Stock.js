@@ -78,7 +78,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
     let day = datetime.getDate();
     day = (day) < 10 ? "0" + (day) : (day);
     let startDate = `${year}-${month}-${day}`;
-    let endDate = `${year - 5}-${month}-${day}`;
+    let endDate = `${year - 2}-${month}-${day}`;
     console.log(stockCode);
     console.log(userId);
     let userInfo = await User.findUsersById(userId);
