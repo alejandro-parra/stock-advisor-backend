@@ -118,7 +118,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
             let diaDeCorte2 = `${year3}-${month3}-${day3}`
             return {time: diaDeCorte2, value: item.close} 
         }),
-        myOperations: userInfo[0].operations.map( (item) => { if(item.stockCode === dataStock[0].stockCode) return item })
+        myOperations: userInfo[0].operations.filter( item =>  item.stockCode === dataStock[0].stockCode )
     }
     
     return res.status(200).send(result);
@@ -239,7 +239,7 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     let dataStock;
     try {
         data = await Stock.getStockDetails('AAPL', end, startDate);
-        dataStock = await Stock.searchStocksBy('stockCode', stockCode)
+        dataStock = await Stock.searchStocksBy('stockCode', stockCode);
         console.log(dataStock[0]);
     }
     catch (err) {
@@ -315,7 +315,7 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
         closedOperations: result[0].operations.filter( (item) => { if(item.status !== "active" ) return item })
     }
 
-    return res.status(200).send(result[0].operations);
+    return res.status(200).send(finalRes);
 }
 
 
