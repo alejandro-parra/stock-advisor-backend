@@ -302,7 +302,7 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
     }
 
     try {
-        let result = await Stock.getUserOperations(userId);
+        let result = await Stock.getUsersOperations(userId);
     }
     catch (err) {
         console.log(err);
