@@ -8,7 +8,7 @@ async function searchStocksBy(method, data) {
     if (method === "_id") {
         res = await Database.collections.stocksCollection.find({ _id: data }).toArray()
     } else {
-        res = await Database.collections.stocksCollection.find({ [method]: data }).toArray();
+        res = await Database.collections.stocksCollection.find({ [method]: { $regex: data } }).toArray();
     }
     // console.log(res);
     return res;

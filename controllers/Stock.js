@@ -18,7 +18,6 @@ async function searchStock(req, res, next) {
         // console.log(result);
     });
 
-
     if (!verifiedToken) {
         return res.status(401).send("Usuario invalido.");
     } else {
@@ -82,7 +81,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
     console.log(stockCode);
     console.log(userId);
     let userInfo = await User.findUsersById(userId);
-    
+
     try {
         dataStock = await Stock.searchStocksBy('_id', new ObjectId(stockCode));
         if (dataStock.length !== 1) return res.status(404).send("No se encontro en el sistema");
@@ -108,7 +107,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         companyImage: dataStock[0].companyImage,
         actualPrice: data[0].close,
         updateDate: diaDeCorte,
-        graphData: data.map( (item) => { 
+        graphData: data.map((item) => {
             dataInfo = item.date;
             let year3 = dataInfo.getFullYear();
             let month3 = dataInfo.getMonth();
@@ -116,11 +115,11 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
             let day3 = dataInfo.getDate();
             day3 = (day3) < 10 ? "0" + (day3) : (day3);
             let diaDeCorte2 = `${year3}-${month3}-${day3}`
-            return {time: diaDeCorte2, value: item.close} 
+            return { time: diaDeCorte2, value: item.close }
         }),
-        myOperations: userInfo[0].operations.filter( item =>  item.stockCode === dataStock[0].stockCode )
+        myOperations: userInfo[0].operations.filter(item => item.stockCode === dataStock[0].stockCode)
     }
-    
+
     return res.status(200).send(result);
 
 }
@@ -235,7 +234,7 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     let day = datetime.getDate();
     day = (day) < 10 ? "0" + (day) : (day);
     let startDate = `${year}-${month}-${day}`;
-    let end = `${year-1}-${month}-${day}`;
+    let end = `${year - 1}-${month}-${day}`;
     let data;
     let dataStock;
     let result;
@@ -246,7 +245,7 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
         // console.log(err);
         return res.status(500).send("Error interno del sistema");
     }
-    let finalOperation = result[0].operations.filter(item => item._id.toString() === _id );
+    let finalOperation = result[0].operations.filter(item => item._id.toString() === _id);
     console.log(finalOperation)
 
 
@@ -268,7 +267,7 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     let day2 = lastDay.getDate();
     day2 = (day2 + 1) < 10 ? "0" + (day2 + 1) : (day2 + 1);
     let diaDeCorte = `${year2}-${month2}-${day2}`
-    
+
 
     if (result) {
         let stockUpdateData = {
@@ -321,8 +320,8 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
         return res.status(500).send("Error interno del sistema");
     }
     let finalRes = {
-        activeOperations: result[0].operations.filter( (item) => { if(item.status === "active" ) return item }),
-        closedOperations: result[0].operations.filter( (item) => { if(item.status !== "active" ) return item })
+        activeOperations: result[0].operations.filter((item) => { if (item.status === "active") return item }),
+        closedOperations: result[0].operations.filter((item) => { if (item.status !== "active") return item })
     }
 
     return res.status(200).send(finalRes);
