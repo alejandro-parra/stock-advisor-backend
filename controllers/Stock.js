@@ -6,6 +6,10 @@ var ObjectId = require('mongodb').ObjectID;
 
 async function searchStock(req, res, next) {
 
+    if(!req.body.userId) {
+        return res.status(400).send("Datos Invalidos");
+    }
+
     console.log(req.body);
     let searchString = sanitize(req.body.searchString);
     let userId = sanitize(req.body.userId);
@@ -47,7 +51,7 @@ async function searchStock(req, res, next) {
 
 async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA ----------------
 
-    if (!req.body.userId && !req.body.stockCode && !req.body.dateTime) {
+    if (!req.body.userId || !req.body.stockCode || !req.body.dateTime) {
         return res.status(400).send("Datos Invalidos");
     }
     console.log(req.body);
@@ -124,11 +128,12 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
 
 }
 
-async function buyStock(req, res, next) {   // ------------ INCOMPLETA ----------------
+async function buyStock(req, res, next) {
 
-    if (!req.body.userId && !req.body.stockCode && !req.body.amountBought) {
+    if (!req.body.userId || !req.body.stockCode || !req.body.amountBought || (req.body.amountBought < 0)) {
         return res.status(400).send("Datos Invalidos");
     }
+    
     console.log(req.body);
     let userId = sanitize(req.body.userId);
     let stockCode = sanitize(req.body.stockCode);
@@ -204,7 +209,7 @@ async function buyStock(req, res, next) {   // ------------ INCOMPLETA ---------
 
 async function sellStock(req, res, next) {   // ------------ INCOMPLETA ----------------
 
-    if (!req.body.userId && !req.body._id && !req.body.closingPrice) {
+    if (!req.body.userId || !req.body._id || !req.body.closingPrice) {
         return res.status(400).send("Datos Invalidos");
     }
     // console.log(req.body);

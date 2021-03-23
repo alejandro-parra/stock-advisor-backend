@@ -23,6 +23,7 @@ async function registerUser(req, res, next) {
     var lastName = sanitize(req.body.lastName);
 
     bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS), async function (err, hash) {
+        let insertResult;
         try {
             var emailExists = await User.findUsersBy('email', email);
         }
@@ -41,7 +42,7 @@ async function registerUser(req, res, next) {
             operations: []
         };
         try {
-            let insertResult = await User.registerUser(user);
+            insertResult = await User.registerUser(user);
         }
         catch (error) {
             console.log(error);
@@ -49,14 +50,14 @@ async function registerUser(req, res, next) {
         }
         let payload = {
             email: email,
-            id: response.insertedId
+            id: insertResult.insertedId
         }
         let token = jwt.sign(payload, process.env.KEY, {
             expiresIn: 604800
         });
         user.password = null;
         user.token = token;
-        user.insertedId = response.insertedId;
+        user.insertedId = insertResult.insertedId;
         return res.status(200).send(user);
     });
 }
