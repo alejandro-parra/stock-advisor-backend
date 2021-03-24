@@ -3,6 +3,8 @@ const User = require("../dbApi/User");
 const sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
 const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 var ObjectId = require('mongodb').ObjectID;
+const delay = require('delay');
+const spawn = require("child_process").spawn;
 
 async function searchStock(req, res, next) {
 
@@ -328,9 +330,34 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
     return res.status(200).send(finalRes);
 }
 
+async function getStockPrediction(req, res, next) {
+    
+    console.log("si entro!")
+    const pythonProcess = spawn('python3.8',["./dbApi/stockCrossover.py"]);
+    console.log("si entro! x2")
+    // console.log(pythonProcess)
+    let dataResult;
+    pythonProcess.stdout.on('data', (data) => {
+        console.log("dentro!")
+        dataStr = data.toString();
+    
+        // dataJson = JSON.parse(dataStr);
+        // console.log(`JSON IS: ${dataJson}`);
+        // console.log(dataJson.Data);
+        dataResult = dataStr;
+        console.log(dataResult[0])
+    });
+    await delay(5000);
+    console.log("fuera!")
+    console.log(dataResult)
+    console.log("fuera!x2")
+    res.status(200).json(dataResult);
+}
+
 
 module.exports.searchStock = searchStock;
 module.exports.getStockDetails = getStockDetails;
 module.exports.buyStock = buyStock;
 module.exports.sellStock = sellStock;
 module.exports.getUserOperations = getUserOperations;
+module.exports.getStockPrediction = getStockPrediction;
