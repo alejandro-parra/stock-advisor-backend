@@ -38,9 +38,9 @@ KEY (Se recomienda cambiar): Llave secreta con la cual encripta las contraseñas
 
 DATABASE_URL (No cambiar): URL de la base de datos de mongo
 
-MAIL (Cambiar): Para utilizar [Nodemailer](https://nodemailer.com/usage/using-gmail/) con gmail sigue el siguiente [tutorial](https://security.google.com/settings/security/apppasswords)
+MAIL (Cambiar): Para utilizar [Nodemailer](https://nodemailer.com/usage/using-gmail/) con gmail sigue el siguiente [link](https://security.google.com/settings/security/apppasswords)
 
-MAIL_USER (Cambiar): Para utilizar [Nodemailer](https://nodemailer.com/usage/using-gmail/) con gmail sigue el siguiente [tutorial](https://security.google.com/settings/security/apppasswords)
+MAIL_USER (Cambiar): Para utilizar [Nodemailer](https://nodemailer.com/usage/using-gmail/) con gmail sigue el siguiente [link](https://security.google.com/settings/security/apppasswords)
 
 PY (Verificar): Debe llevar el nombre con el que corres globalmente python en tu dispositivo. 
 Ej: 'python', 'python3', 'py'.
