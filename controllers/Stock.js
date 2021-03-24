@@ -61,14 +61,14 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
 
 
     let verifiedToken;
-    await jwt.verify(token, process.env.KEY, function (err, result) {
-        verifiedToken = result;
-        // console.log(result);
-    });
+    // await jwt.verify(token, process.env.KEY, function (err, result) {
+    //     verifiedToken = result;
+    //     // console.log(result);
+    // });
 
-    if (!verifiedToken) {
-        return res.status(401).send("Usuario invalido.");
-    }
+    // if (!verifiedToken) {
+    //     return res.status(401).send("Usuario invalido.");
+    // }
 
     let data;
     let dataStock;
@@ -95,7 +95,27 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         console.log(err);
         return res.status(500).send("Error interno del sistema");
     }
-    console.log(data);
+
+    const pythonProcess = spawn('python',["./dbApi/stockCrossover.py", dataStock[0].stockCode]);
+    let dataResult;
+    pythonProcess.stdout.on('data', (data) => {
+        console.log("dentro!")
+        dataStr = data.toString();
+        dataResult = JSON.parse(dataStr);
+    });
+    // console.log(res);
+    await delay(5000);
+    console.log(dataStock[0].stockCode)
+    console.log(dataResult)
+    console.log(dataResult.Data)
+    let typePrediction;
+    if (dataResult.Data === 1) {
+        typePrediction = "positive";
+    } else if (dataResult.Data === 0) {
+        typePrediction = "negative";
+    }
+
+    // console.log(data);
     lastDay = data[0].date;
     let year2 = lastDay.getFullYear();
     let month2 = lastDay.getMonth();
@@ -103,13 +123,14 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
     let day2 = lastDay.getDate();
     day2 = (day2 + 1) < 10 ? "0" + (day2 + 1) : (day2 + 1);
     let diaDeCorte = `${year2}-${month2}-${day2}`
-
+    console.log("type of prediciton: ", typePrediction)
     let result = {
         stockName: dataStock[0].stockName,
         stockCode: dataStock[0].stockCode,
         companyImage: dataStock[0].companyImage,
         actualPrice: data[0].close,
         updateDate: diaDeCorte,
+        typeOfPrediction: typePrediction,
         graphData: data.map( (item) => { 
             dataInfo = item.date;
             let year3 = dataInfo.getFullYear();
@@ -330,34 +351,8 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
     return res.status(200).send(finalRes);
 }
 
-async function getStockPrediction(req, res, next) {
-    
-    console.log("si entro!")
-    const pythonProcess = spawn('python3.8',["./dbApi/stockCrossover.py"]);
-    console.log("si entro! x2")
-    // console.log(pythonProcess)
-    let dataResult;
-    pythonProcess.stdout.on('data', (data) => {
-        console.log("dentro!")
-        dataStr = data.toString();
-    
-        // dataJson = JSON.parse(dataStr);
-        // console.log(`JSON IS: ${dataJson}`);
-        // console.log(dataJson.Data);
-        dataResult = dataStr;
-        console.log(dataResult[0])
-    });
-    await delay(5000);
-    console.log("fuera!")
-    console.log(dataResult)
-    console.log("fuera!x2")
-    res.status(200).json(dataResult);
-}
-
-
 module.exports.searchStock = searchStock;
 module.exports.getStockDetails = getStockDetails;
 module.exports.buyStock = buyStock;
 module.exports.sellStock = sellStock;
 module.exports.getUserOperations = getUserOperations;
-module.exports.getStockPrediction = getStockPrediction;

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 start = pd.to_datetime('2011-01-01')
 end = pd.to_datetime('today')
 
-name = 'RCMT'
+name = sys.argv[1]
 stock = data.DataReader(name,'yahoo',start,end)
 
 SMA30 = pd.DataFrame()
@@ -24,10 +24,13 @@ data[name] = stock['Adj Close']
 data['SMA30'] = SMA30['Adj Close Price']
 data['SMA100'] = SMA100['Adj Close Price']
 
+
+
 def buy_sell(data):
     sigPriceBuy = []
     sigPriceSell = []
     flag = -1
+    outFlag = -1
     
     for i in range(len(data)):
         if data['SMA30'][i] > data['SMA100'][i]:
@@ -35,6 +38,7 @@ def buy_sell(data):
                 sigPriceBuy.append(data[name][i])
                 sigPriceSell.append(np.nan)
                 flag = 1
+                outFlag = 1
             else:
                 sigPriceBuy.append(np.nan)
                 sigPriceSell.append(np.nan)
@@ -43,27 +47,22 @@ def buy_sell(data):
                 sigPriceBuy.append(np.nan)
                 sigPriceSell.append(data[name][i])
                 flag = 0
+                outFlag = 0
             else:
                 sigPriceBuy.append(np.nan)
                 sigPriceSell.append(np.nan)
         else:
             sigPriceBuy.append(np.nan)
             sigPriceSell.append(np.nan)
-    return (sigPriceBuy, sigPriceSell)
+    return (outFlag)
 
-buy_sell = buy_sell(data)
-data['Buy_Signal_Price'] = buy_sell[0]
-data['Sell_Signal_Price'] = buy_sell[1]
-
-result = data.to_json(orient="split")
-parsed = json.loads(result)
+j = buy_sell(data)
 
 resp = {
     "Response": 200,
     "Message":"JSON with flags",
-    "Data":parsed
+    "Data":j
 }
 
-print(json.dumps(parsed))
+print(json.dumps(resp))
 sys.stdout.flush()
-

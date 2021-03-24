@@ -19,8 +19,4 @@ router.route('/buy-stock').post(Stock.buyStock);
 router.route('/sell-stock').post(Stock.sellStock);
 router.route('/my-operations').post(Stock.getUserOperations);
 
-// prueba
-
-router.route('/python').get(Stock.getStockPrediction);
-
 module.exports = router;
