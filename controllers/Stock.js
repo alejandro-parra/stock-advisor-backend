@@ -61,14 +61,14 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
 
 
     let verifiedToken;
-    // await jwt.verify(token, process.env.KEY, function (err, result) {
-    //     verifiedToken = result;
-    //     // console.log(result);
-    // });
+    await jwt.verify(token, process.env.KEY, function (err, result) {
+        verifiedToken = result;
+        // console.log(result);
+    });
 
-    // if (!verifiedToken) {
-    //     return res.status(401).send("Usuario invalido.");
-    // }
+    if (!verifiedToken) {
+        return res.status(401).send("Usuario invalido.");
+    }
 
     let data;
     let dataStock;
@@ -86,7 +86,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
     let userInfo = await User.findUsersById(userId);
     
     try {
-        dataStock = await Stock.searchStocksBy('_id', new ObjectId(stockCode));
+        dataStock = await Stock.searchStocksBy('stockCode', stockCode);
         if (dataStock.length !== 1) return res.status(404).send("No se encontro en el sistema");
         data = await Stock.getStockDetails(dataStock[0].stockCode, endDate, startDate);
         if (data.length === 0) return res.status(404).send("Yahoo esta caido :(");
@@ -206,9 +206,9 @@ async function buyStock(req, res, next) {   // ------------ INCOMPLETA ---------
     let day2 = lastDay.getDate();
     day2 = (day2 + 1) < 10 ? "0" + (day2 + 1) : (day2 + 1);
     let diaDeCorte = `${year2}-${month2}-${day2}`
-
+    let stockOperation;
     if (data) {
-        let stockOperation = {
+        stockOperation = {
             _id: new ObjectId(),
             stockCode: stockCode,
             companyImg: dataStock[0].companyImage,
@@ -220,7 +220,8 @@ async function buyStock(req, res, next) {   // ------------ INCOMPLETA ---------
         }
         console.log(stockOperation);
         try {
-            let insertResult = await Stock.registerBoughtStock("operations", stockOperation, userId);   // checar dbApi Stock.js corregir parametros enviados
+            let insertResult = await Stock.registerBoughtStock("operations", stockOperation, userId);
+            return res.status(200).send(stockOperation);   // checar dbApi Stock.js corregir parametros enviados
         }
         catch (err) {
             console.log(err);
@@ -230,7 +231,6 @@ async function buyStock(req, res, next) {   // ------------ INCOMPLETA ---------
     } else {
         return res.status(400).send("Error, el stock no existe en el sistema");
     }
-    return res.status(200).send("Compra hecha de manera exitosa");
 }
 
 
@@ -239,7 +239,6 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     if (!req.body.userId && !req.body._id && !req.body.closingPrice) {
         return res.status(400).send("Datos Invalidos");
     }
-    // console.log(req.body);
     let userId = sanitize(req.body.userId);
     let _id = sanitize(req.body._id);
     let closingPrice = sanitize(req.body.closingPrice);
