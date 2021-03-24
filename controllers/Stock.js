@@ -96,7 +96,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         return res.status(500).send("Error interno del sistema");
     }
 
-    const pythonProcess = spawn('py',["./dbApi/stockCrossover.py", dataStock[0].stockCode]);
+    const pythonProcess = spawn(process.env.PY,["./dbApi/stockCrossover.py", dataStock[0].stockCode]);
     let dataResult = await new Promise((resolve, reject) => {
         let timer = setTimeout(() => {
             reject()
