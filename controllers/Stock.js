@@ -96,15 +96,23 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         return res.status(500).send("Error interno del sistema");
     }
 
-    const pythonProcess = spawn('python',["./dbApi/stockCrossover.py", dataStock[0].stockCode]);
-    let dataResult;
-    pythonProcess.stdout.on('data', (data) => {
-        console.log("dentro!")
-        dataStr = data.toString();
-        dataResult = JSON.parse(dataStr);
-    });
-    // console.log(res);
-    await delay(5000);
+    const pythonProcess = spawn('py',["./dbApi/stockCrossover.py", dataStock[0].stockCode]);
+    let dataResult = await new Promise((resolve, reject) => {
+        let timer = setTimeout(() => {
+            reject()
+        }, 10000)
+        pythonProcess.stdout.on('data', (data) => {
+            console.log("dentro!")
+            dataStr = data.toString();
+            resolve(JSON.parse(dataStr));
+            clearTimeout(timer);
+            return;
+        });
+    }).catch(err => {
+        console.log(err);
+        return res.status(500).send("Error interno del sistema")
+    })
+    
     console.log(dataStock[0].stockCode)
     console.log(dataResult)
     console.log(dataResult.Data)
