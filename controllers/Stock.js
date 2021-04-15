@@ -3,12 +3,11 @@ const User = require("../dbApi/User");
 const sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
 const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 var ObjectId = require('mongodb').ObjectID;
-const delay = require('delay');
 const spawn = require("child_process").spawn;
 
 async function searchStock(req, res, next) {
 
-    if(!req.body.userId) {
+    if (!req.body.userId) {
         return res.status(400).send("Datos Invalidos");
     }
 
@@ -99,7 +98,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         return res.status(500).send("Error interno del sistema");
     }
 
-    const pythonProcess = spawn(process.env.PY,["./dbApi/stockCrossover.py", dataStock[0].stockCode]);
+    const pythonProcess = spawn(process.env.PY, ["./dbApi/stockCrossover.py", dataStock[0].stockCode]);
     let dataResult = await new Promise((resolve, reject) => {
         let timer = setTimeout(() => {
             reject()
@@ -115,7 +114,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         console.log(err);
         return res.status(500).send("Error interno del sistema")
     })
-    
+
     console.log(dataStock[0].stockCode)
     console.log(dataResult)
     console.log(dataResult.Data)
@@ -142,7 +141,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         actualPrice: data[0].close,
         updateDate: diaDeCorte,
         typeOfPrediction: typePrediction,
-        graphData: data.map( (item) => { 
+        graphData: data.map((item) => {
             dataInfo = item.date;
             let year3 = dataInfo.getFullYear();
             let month3 = dataInfo.getMonth();
@@ -164,7 +163,7 @@ async function buyStock(req, res, next) {
     if (!req.body.userId || !req.body.stockCode || !req.body.amountBought || (req.body.amountBought < 0)) {
         return res.status(400).send("Datos Invalidos");
     }
-    
+
     console.log(req.body);
     let userId = sanitize(req.body.userId);
     let stockCode = sanitize(req.body.stockCode);
