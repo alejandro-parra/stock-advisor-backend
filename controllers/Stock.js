@@ -3,6 +3,8 @@ const User = require("../dbApi/User");
 const sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
 const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 var ObjectId = require('mongodb').ObjectID;
+const delay = require('delay');
+const spawn = require("child_process").spawn;
 
 async function searchStock(req, res, next) {
 
@@ -87,7 +89,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
     let userInfo = await User.findUsersById(userId);
 
     try {
-        dataStock = await Stock.searchStocksBy('_id', new ObjectId(stockCode));
+        dataStock = await Stock.searchStocksBy('stockCode', stockCode);
         if (dataStock.length !== 1) return res.status(404).send("No se encontro en el sistema");
         data = await Stock.getStockDetails(dataStock[0].stockCode, endDate, startDate);
         if (data.length === 0) return res.status(404).send("Yahoo esta caido :(");
@@ -96,7 +98,35 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         console.log(err);
         return res.status(500).send("Error interno del sistema");
     }
-    console.log(data);
+
+    const pythonProcess = spawn(process.env.PY,["./dbApi/stockCrossover.py", dataStock[0].stockCode]);
+    let dataResult = await new Promise((resolve, reject) => {
+        let timer = setTimeout(() => {
+            reject()
+        }, 10000)
+        pythonProcess.stdout.on('data', (data) => {
+            console.log("dentro!")
+            dataStr = data.toString();
+            resolve(JSON.parse(dataStr));
+            clearTimeout(timer);
+            return;
+        });
+    }).catch(err => {
+        console.log(err);
+        return res.status(500).send("Error interno del sistema")
+    })
+    
+    console.log(dataStock[0].stockCode)
+    console.log(dataResult)
+    console.log(dataResult.Data)
+    let typePrediction;
+    if (dataResult.Data === 1) {
+        typePrediction = "positive";
+    } else if (dataResult.Data === 0) {
+        typePrediction = "negative";
+    }
+
+    // console.log(data);
     lastDay = data[0].date;
     let year2 = lastDay.getFullYear();
     let month2 = lastDay.getMonth();
@@ -104,14 +134,15 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
     let day2 = lastDay.getDate();
     day2 = (day2 + 1) < 10 ? "0" + (day2 + 1) : (day2 + 1);
     let diaDeCorte = `${year2}-${month2}-${day2}`
-
+    console.log("type of prediciton: ", typePrediction)
     let result = {
         stockName: dataStock[0].stockName,
         stockCode: dataStock[0].stockCode,
         companyImage: dataStock[0].companyImage,
         actualPrice: data[0].close,
         updateDate: diaDeCorte,
-        graphData: data.map((item) => {
+        typeOfPrediction: typePrediction,
+        graphData: data.map( (item) => { 
             dataInfo = item.date;
             let year3 = dataInfo.getFullYear();
             let month3 = dataInfo.getMonth();
@@ -179,9 +210,9 @@ async function buyStock(req, res, next) {
     let day2 = lastDay.getDate();
     day2 = (day2 + 1) < 10 ? "0" + (day2 + 1) : (day2 + 1);
     let diaDeCorte = `${year2}-${month2}-${day2}`
-
+    let stockOperation;
     if (data) {
-        let stockOperation = {
+        stockOperation = {
             _id: new ObjectId(),
             stockCode: stockCode,
             companyImg: dataStock[0].companyImage,
@@ -193,7 +224,8 @@ async function buyStock(req, res, next) {
         }
         console.log(stockOperation);
         try {
-            let insertResult = await Stock.registerBoughtStock("operations", stockOperation, userId);   // checar dbApi Stock.js corregir parametros enviados
+            let insertResult = await Stock.registerBoughtStock("operations", stockOperation, userId);
+            return res.status(200).send(stockOperation);   // checar dbApi Stock.js corregir parametros enviados
         }
         catch (err) {
             console.log(err);
@@ -203,7 +235,6 @@ async function buyStock(req, res, next) {
     } else {
         return res.status(400).send("Error, el stock no existe en el sistema");
     }
-    return res.status(200).send("Compra hecha de manera exitosa");
 }
 
 
@@ -212,7 +243,6 @@ async function sellStock(req, res, next) {   // ------------ INCOMPLETA --------
     if (!req.body.userId || !req.body._id) {
         return res.status(400).send("Datos Invalidos");
     }
-    // console.log(req.body);
     let userId = sanitize(req.body.userId);
     let _id = sanitize(req.body._id);
     let token = sanitize(req.headers['access-token']);
@@ -330,7 +360,6 @@ async function getUserOperations(req, res, next) {   // ------------ INCOMPLETA 
 
     return res.status(200).send(finalRes);
 }
-
 
 module.exports.searchStock = searchStock;
 module.exports.getStockDetails = getStockDetails;

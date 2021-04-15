@@ -105,14 +105,14 @@ async function resetPassword(req, res, next) {
         console.log(req.body)
         var userToken = sanitize(req.body.token);
         var password = sanitize(req.body.password);
-        let result = await User.findUsersBy(token, userToken);
+        let result = await User.findUsersBy('token', userToken);
         var difference = Date.now() - result[0].tokenTime
         if (result.length > 0 && difference < 86400000) {
             bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS), async function (err, hash) {
                 var params = { $set: { password: hash }, $unset: { token: "", tokenTime: "" } };
                 var result;
                 try {
-                    result = await User.updateUserBy("token", token, params);
+                    result = await User.updateUserBy("token", userToken, params);
                 } catch (err) {
                     res.status(404).send("Usuario no encontrado en la base de datos.");
                     console.log(err);
@@ -158,6 +158,7 @@ async function sendRecoveryToken(req, res, next) {
         </html>
         `
         let response = await Utilities.sendEmail("alexparra07@gmail.com", email, 'Restablecer contraseña StockAdvisor', resetPasswordTemplate).catch((err) => {
+            console.log(err)
             res.status(500).send("Error mandando el correo");
         });
         if (response == 'success') {
