@@ -2,7 +2,6 @@ const bcrypt = require('bcrypt'); //encripta
 const sanitize = require('mongo-sanitize'); //eliminar codigo de los fields que manda el front
 const User = require('../dbApi/User');
 const Utilities = require('./Utilities');
-const jwt = require('jsonwebtoken'); //autenticar usuarios con tokens
 const crypto = require('crypto'); //random string generator (no es muy bueno para encriptar)
 var ObjectId = require('mongodb').ObjectID;
 var validator = require("email-validator");
@@ -48,13 +47,7 @@ async function registerUser(req, res, next) {
             console.log(error);
             return res.status(500).send("Error interno del sistema");
         }
-        let payload = {
-            email: email,
-            id: insertResult.insertedId
-        }
-        let token = jwt.sign(payload, process.env.KEY, {
-            expiresIn: 604800
-        });
+        const token = Utilities.signToken(email, insertResult.insertedId)
         user.password = null;
         user.token = token;
         user.insertedId = insertResult.insertedId;
@@ -81,13 +74,7 @@ async function loginUser(req, res, next) {
             if (!bcrypt.compareSync(password, user.password)) {
                 res.status(400).send("Contraseña incorrecta");
             } else {
-                let payload = {
-                    userMail: user.email,
-                    id: user._id
-                }
-                let token = jwt.sign(payload, process.env.KEY, {
-                    expiresIn: 604800
-                });
+                const token = Utilities.signToken(email, user._id)
                 user.password = null;
                 user.token = token;
                 res.status(200).send(user);

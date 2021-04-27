@@ -22,7 +22,7 @@ async function searchStock(req, res, next) {
         verifiedToken = result;
         // console.log(result);
     });
-
+    let result;
     if (!verifiedToken) {
         return res.status(401).send("Usuario invalido.");
     } else {
