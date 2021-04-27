@@ -12,7 +12,6 @@ async function findUsersBy(method, data) {
 }
 
 async function findUsersById(data) {
-
     return Database.collections.usersCollection.find({ _id: ObjectId(data) }).toArray();
     // return usersCollection.find({ email: email }).toArray()
 }

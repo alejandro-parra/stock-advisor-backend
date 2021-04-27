@@ -1,17 +1,16 @@
 const mongo = require('mongodb').MongoClient
 var db;
+var client;
 const collections = {
     usersCollection: null,
     stocksCollection: null
 }
 
-
-
 async function connectToServer() {
     try {
-        let client = await mongo.connect(process.env.DATABASE_URL, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 10 });
+        client = await mongo.connect(process.env.DATABASE_URL, { useNewUrlParser: true, useUnifiedTopology: true, poolSize: 10 });
         console.log('Connected to mongodb');
-        db = client.db('StockAdvisor');
+        db = await client.db('StockAdvisor');
         collections.usersCollection = db.collection('Users');
         collections.stocksCollection = db.collection('Stocks');
         return db; // client.db('StockAdvisor');
@@ -21,48 +20,11 @@ async function connectToServer() {
     }
 }
 
-// function usersCollection() {
-//     return _usersCollection;
-// }
+async function closeDatabase() {
+  await client.close();
+}
 
-// function stocksCollection() {
-//     return _stocksCollection;
-// }
-
-
-
+module.exports.closeDatabase = closeDatabase;
 module.exports.connectToServer = connectToServer;
 module.exports.db = db;
-// module.exports.usersCollection = usersCollection;
-// module.exports.stocksCollection = stocksCollection;
 module.exports.collections = collections;
-
-
-// module.exports = {
-//     connectToServer: function( callback ) {
-//         mongo.connect(
-//             url,
-//             {useNewUrlParser: true}, 
-//             function(err, client) {
-//                 _db  = client.db('StockAdvisor');
-//                 console.log('Connected to mongodb');
-//                 return callback(err);
-//             }
-//         );
-//     },
-//     getDb: function() {
-//         return _db;
-//     }
-// };
-
-
-// mongo.connect(
-//     url, 
-//     { 
-//         useNewUrlParser: true, 
-//         useUnifiedTopology: true, 
-//         poolSize: 10 
-//     }, 
-//     (err, client) => {
-//     }
-// )

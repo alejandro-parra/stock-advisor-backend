@@ -51,7 +51,6 @@ async function searchStock(req, res, next) {
 
 
 async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA ----------------
-
     if (!req.body.userId || !req.body.stockCode) {
         return res.status(400).send("Datos Invalidos");
     }
@@ -105,7 +104,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         }, 10000)
         pythonProcess.stdout.on('data', (data) => {
             console.log("dentro!")
-            dataStr = data.toString();
+            const dataStr = data.toString();
             resolve(JSON.parse(dataStr));
             clearTimeout(timer);
             return;
@@ -126,7 +125,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
     }
 
     // console.log(data);
-    lastDay = data[0].date;
+    const lastDay = data[0].date;
     let year2 = lastDay.getFullYear();
     let month2 = lastDay.getMonth();
     month2 = (month2 + 1) < 10 ? "0" + (month2 + 1) : (month2 + 1);
@@ -142,7 +141,7 @@ async function getStockDetails(req, res, next) {   // ------------ INCOMPLETA --
         updateDate: diaDeCorte,
         typeOfPrediction: typePrediction,
         graphData: data.map((item) => {
-            dataInfo = item.date;
+            const dataInfo = item.date;
             let year3 = dataInfo.getFullYear();
             let month3 = dataInfo.getMonth();
             month3 = (month3 + 1) < 10 ? "0" + (month3 + 1) : (month3 + 1);
